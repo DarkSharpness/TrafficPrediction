@@ -126,7 +126,7 @@ double make_pred(std::string_view line) {
     //         div += factor[i];
     //     }
 
-    auto [sum, div] = sum_days(iu_ac, times);
+    auto [sum, div] = sum_week(iu_ac, times);
     // auto [sum_1, div_1] = sum_week(iu_ac, times);
 
     // if (div_0 + div_1 == 0) return -1;
