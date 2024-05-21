@@ -126,15 +126,16 @@ double make_pred(std::string_view line) {
     //         div += factor[i];
     //     }
 
-    auto [sum_0, div_0] = sum_days(iu_ac, times);
-    auto [sum_1, div_1] = sum_week(iu_ac, times);
+    auto [sum, div] = sum_days(iu_ac, times);
+    // auto [sum_1, div_1] = sum_week(iu_ac, times);
 
-    if (div_0 + div_1 == 0) return -1;
-    if (div_0 == 0) return sum_1 / div_1;
-    if (div_1 == 0) return sum_0 / div_0;
-    auto sum = sum_0 / div_0 + sum_1 / div_1;
+    // if (div_0 + div_1 == 0) return -1;
+    // if (div_0 == 0) return sum_1 / div_1;
+    // if (div_1 == 0) return sum_0 / div_0;
+    // auto sum = sum_0 / div_0 + sum_1 / div_1;
+    if (div == 0) return -1;
 
-    return sum / 2;
+    return sum / div;
 }
 
 std::vector <double> base;
