@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
+import torch
 
 class TrafficDataset(Dataset):
     def __init__(self, data, seq_len, pred_len):
