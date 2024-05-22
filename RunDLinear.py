@@ -19,32 +19,25 @@ configs = Configs()
 model = Model(configs)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-import visdom
-vis = visdom.Visdom()
+# import visdom
+# vis = visdom.Visdom()
 losses = []
 losses_idx = 0
 def update_loss(loss):
-    if len(losses) < 1000:
-        losses.append(loss)
-    else:
-        losses[losses_idx] = loss
-        losses_idx += 1
-        losses_idx %= 1000
+    losses.append(loss)
+    if len(losses) > 1000:
+        losses.pop(0)
     vis.line(Y=np.array(losses), X=np.arange(len(losses)),
              win='loss', opts=dict(title='Training Loss', xlabel='Epoch', ylabel='Loss'))
 
 def train(train_data: pd.DataFrame):
     dataset = TrafficDataset(train_data, seq_len, pred_len)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
-
-    global model
-    model = model.to('cuda' if torch.cuda.is_available() else 'cpu')
-
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     model.train()
-    for epoch in range(50):  # 训练50个epoch
+    for epoch in range(100):  # 训练50个epoch
         epoch_loss = 0
         for seq_x, seq_y in dataloader:
             seq_x, seq_y = seq_x.to(device), seq_y.to(device)
@@ -54,8 +47,8 @@ def train(train_data: pd.DataFrame):
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-        loss = epoch_loss / len(dataloader)
-    update_loss(loss)
+        # loss = epoch_loss / len(dataloader)
+        # update_loss(loss)
 
 
 def predict(predict_data: pd.DataFrame) -> list[float]:
@@ -91,23 +84,33 @@ def main():
         model = torch.load(SAVE_PATH)
     else:
         model = Model(configs)
+    print("will use " + ('cuda' if torch.cuda.is_available() else 'cpu') + " to train and predict")
+    model = model.to('cuda' if torch.cuda.is_available() else 'cpu')
     print("done loading data")
 
     if is_train:
-        for index, row in tqdm(id4predict.iterrows(), total=1758):
-            current_id = row['id']
-            # print(f"{current_id =}")
-            current_train_data = train_data[train_data['iu_ac'] == current_id]
-            train(current_train_data)
-
-        print("start save model")
-        torch.save(model, SAVE_PATH)
-        print("done save model")
+        try:
+            for r in range(50):
+                print("round", r)
+                for index, row in tqdm(id4predict.iterrows(), total=1758):
+                    current_id = row['id']
+                    # print(f"{current_id =}")
+                    current_train_data = train_data[train_data['iu_ac'] == current_id]
+                    train(current_train_data)
+                torch.save(model, SAVE_PATH)
+        except Exception as e:
+            print(e)
+        finally:
+            print("start save model")
+            torch.save(model, SAVE_PATH)
+            print("done save model")
 
     print("start predicting")
     result = []
     for index, row in tqdm(id4predict.iterrows(), total=1758):
         current_id = row['id']
+        current_train_data = train_data[train_data['iu_ac'] == current_id]
+        train(current_train_data) # retrain for specialize
         current_predict_data = predict_data[predict_data['iu_ac'] == current_id]
         predictions = predict(current_predict_data)
         result.extend(predictions)
