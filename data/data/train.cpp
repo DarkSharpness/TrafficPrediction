@@ -49,7 +49,7 @@ constexpr size_t kCOUNT = 10000;
 size_t appearance[kCOUNT];
 
 void print_meta() {
-    std::ofstream meta("meta.txt", std::ios::trunc);
+    std::ofstream meta("meta.csv", std::ios::trunc);
     for (size_t i = 0; i < kCOUNT; i++) {
         auto cnt = appearance[i];
         if (cnt == 0) continue;

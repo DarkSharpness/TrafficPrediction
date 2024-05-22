@@ -16,7 +16,7 @@ size_t appear[kCOUNT];
 std::vector <double> train[kCOUNT];
 
 void read_meta() {
-    std::ifstream in("meta.txt");
+    std::ifstream in("meta.csv");
     assert(in.is_open());
     std::string str;
     while (std::getline(in, str)) {
