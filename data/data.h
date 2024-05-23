@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <format>
 #include <source_location>
@@ -156,6 +158,10 @@ inline const _Path_t
     mid0_csv        = "__exe__/mid0.csv",   // Consecutive 0
     raw_train_csv   = "loop_sensor_train.csv",
     raw_pred_csv    = "loop_sensor_test_x.csv",
-    baseline_csv    = "loop_sensor_test_baseline.csv";
+    baseline_csv    = "loop_sensor_test_baseline.csv",
+    raw_result_csv  = "raw.csv",
+    final_result_csv= "__exe__/result.csv",
+    flat_dat_csv    = "__exe__/flat.dat.csv",
+    flat_idx_csv    = "__exe__/flat.idx.csv";
 
 } // namespace Path
