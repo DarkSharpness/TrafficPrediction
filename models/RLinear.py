@@ -22,19 +22,15 @@ class Model(nn.Module):
     def forward_loss(self, pred, true):
         return F.mse_loss(pred, true)
 
-    def forward(self, x, y):
+    # def forward(self, x, y):
+    def forward(self, x):
         # x: [B, L, D]
         x = self.rev(x, 'norm') if self.rev else x
         x = self.dropout(x)
-        if self.individual:
-            pred = torch.zeros_like(y)
-            for idx, proj in enumerate(self.Linear):
-                pred[:, :, idx] = proj(x[:, :, idx])
-        else:
-            pred = self.Linear(x.transpose(1, 2)).transpose(1, 2)
+        pred = self.Linear(x.transpose(1, 2)).transpose(1, 2)
         pred = self.rev(pred, 'denorm') if self.rev else pred
-
-        return pred, self.forward_loss(pred, y)
+        return pred
+        # return pred, self.forward_loss(pred, y)
 
 class TrafficDataset(Dataset):
     def __init__(self, data, seq_len, pred_len):
@@ -43,7 +39,7 @@ class TrafficDataset(Dataset):
         self.pred_len = pred_len
         self.sensor_ids = data['iu_ac'].unique()
         self.samples = self.create_samples()
-        
+
 #数据的处理待定
     def create_samples(self):
         samples = []
