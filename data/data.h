@@ -149,9 +149,11 @@ namespace Path {
 using _Path_t = const char *;
 
 inline const _Path_t
-    train_csv       = "__exe__/train.csv",
-    pred_csv        = "__exe__/pred.csv",
-    meta_csv        = "__exe__/meta.csv",
+    train_csv       = "__exe__/train.csv",  // training data
+    pred_csv        = "__exe__/pred.csv",   // prediction task
+    meta_csv        = "__exe__/meta.csv",   // meta data, occurance data
+    all0_csv        = "__exe__/all0.csv",   // Prefix 0
+    mid0_csv        = "__exe__/mid0.csv",   // Consecutive 0
     raw_train_csv   = "loop_sensor_train.csv",
     raw_pred_csv    = "loop_sensor_test_x.csv",
     baseline_csv    = "loop_sensor_test_baseline.csv";
