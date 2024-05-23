@@ -1,13 +1,15 @@
 from torch.utils.data import Dataset, DataLoader
 import torch
+from tqdm import tqdm
 
 class TrafficDataset(Dataset):
-    def __init__(self, data, seq_len, pred_len):
+    def __init__(self, data, seq_len, pred_len, device = torch.device("cuda" if torch.cuda.is_available() else "cpu")):
         self.data = data
         self.seq_len = seq_len
         self.pred_len = pred_len
         self.sensor_ids = data['iu_ac'].unique()
         self.samples = self.create_samples()
+        self.device = device
 
 # 数据的处理待定
     def create_samples(self):
@@ -26,4 +28,24 @@ class TrafficDataset(Dataset):
 
     def __getitem__(self, idx):
         seq_x, seq_y = self.samples[idx]
-        return torch.tensor(seq_x, dtype=torch.float32), torch.tensor(seq_y, dtype=torch.float32)
+        return torch.tensor(seq_x, dtype=torch.float32, device=self.device).reshape(-1, 1), torch.tensor(seq_y, dtype=torch.float32, device=self.device).reshape(-1, 1)
+
+
+class TrafficDatasetTrain(Dataset):
+    def __init__(self, idx, data, seq_len, pred_len, device) -> None:
+        # if len(time) != len(data):
+        #     raise ValueError("time and data must have the same length")
+        super().__init__()
+        self.data = data
+        self.seq_len = seq_len
+        self.pred_len = pred_len
+        self.bag_size = seq_len + pred_len
+        self.idx = idx
+        self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def __len__(self):
+        return len(self.idx)
+
+    def __getitem__(self, idx):
+        idx = self.idx[idx]
+        return torch.tensor(self.data[idx: idx+self.seq_len], dtype=torch.float32, device=self.device).reshape(-1, 1), torch.tensor(self.data[idx+self.seq_len: idx+self.seq_len+self.pred_len],dtype=torch.float32, device=self.device).reshape(-1, 1)

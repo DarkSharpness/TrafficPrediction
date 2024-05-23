@@ -64,9 +64,6 @@ def predict(predict_data: pd.DataFrame) -> list[float]:
             predictions.append(output.cpu().numpy().flatten())
 
     predictions = np.concatenate(predictions, axis=0)
-    if (len(predictions) != datalen):
-        print("error", f"{datalen =} {len(predictions) =}")
-        exit(1)
     return predictions
 
 SAVE_PATH = "DLinear.pth"
