@@ -168,7 +168,8 @@ void read_pred() {
     size_t cnt = 0;
     while (std::getline(in, str)) {
         result[++cnt] = make_pred(str);
-        if (!(result[cnt] > 0)) result[cnt] = 0;
+        if (!(result[cnt] > 0)) result[cnt] = base[cnt];
+        out << std::format("{},{:.1f}\n", cnt, result[cnt]);
     }
 }
 
@@ -178,12 +179,14 @@ signed main() {
     std::cerr << "read train done\n";
     read_pred();
 
-    double sum = 0;
-    for (size_t i = 1; i <= 439300; ++i) {
-        if (base[i] == -1) continue;
-        sum += (base[i] - result[i]) * (base[i] - result[i]);
-    }
+    // double sum = 0;
+    // size_t cnt = 0;
+    // for (size_t i = 1; i <= 439300; ++i) {
+    //     if (base[i] == -1) continue;
+    //     sum += (base[i] - result[i]) * (base[i] - result[i]);
+    //     cnt += 1;
+    // }
 
-    std::cerr << "sum: " << sum << '\n';
+    // std::cerr << "loss: " << sum / cnt << '\n';
     return 0;
 }

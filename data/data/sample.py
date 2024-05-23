@@ -35,9 +35,6 @@ def plot_data_and_fit(x, y, periods, params):
     # 确保 x 是浮点数类型，以免类型转换错误
     x = np.asarray(x, dtype=float)
 
-    x = x[100:200]
-    y = y[100:200]
-
     # 生成拟合的y值
     y_fit = periodic_function(x, *params, periods=periods)
 
@@ -53,9 +50,19 @@ def plot_data_and_fit(x, y, periods, params):
     plt.title('Comparison of Original Data and Fitted Function')
     plt.xlabel('Time')
     plt.ylabel('Value')
-    
+
     # 显示图表
     plt.show()
+
+def calculate_loss(x, y, periods, params):
+    x = np.asarray(x, dtype=float)
+    y_fit = periodic_function(x, *params, periods=periods)
+    return np.sum((y - y_fit) ** 2) / len(x)
+
+def predict(x, periods, params):
+    x = np.asarray(x, dtype=float)
+    y_fit = periodic_function(x, *params, periods=periods)
+    return y_fit
 
 # 如果是 main
 if __name__ == '__main__':
