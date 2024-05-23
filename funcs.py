@@ -63,14 +63,15 @@ def save_prediction(predictions: torch.Tensor, filename_noext: str):
     while os.path.exists(filename_noext + f"_{k}.csv"):
         k += 1
     filename = filename_noext + f"_{k}.csv"
+    print("saving to", filename)
     with open(filename, "w") as f:
         f.write("id,estimate_q\n")
         for i, pred in enumerate(predictions):
-            f.write(f"{i},{pred}\n")
+            f.write(f"{i+1},{pred:.2f}\n")
 
 def load_model(path: str):
     if os.path.exists(path):
-        model = torch.load(path)
+        model = torch.load(path, map_location=torch.device('cpu'))
         return model
     else:
         return None
@@ -96,3 +97,22 @@ def load_train_dataset(device: torch.device = torch.device('cpu')):
     dataset = TrafficDatasetTrain(idx, value, 24, 1, device=device)
     print("done preparing dataset")
     return dataset
+
+def do_predict(model: nn.Module, device: torch.device, savepath: str):
+    print("loading data")
+    id4predict = pd.read_csv('data/id_for_predict.csv')
+    predict_data = pd.read_csv('data/predict_data.csv')
+    # train_data = pd.read_csv('data/train_data.csv')
+    print("start predicting")
+    result = torch.tensor([])
+    for index, row in tqdm(id4predict.iterrows(), total=1758):
+        current_id = row['id']
+        # current_train_data = train_data[train_data['iu_ac'] == current_id]
+        # train_datset = TrafficDataset(current_train_data, 24, 1, device=device)
+        # train(train_datset) # retrain for specialize
+        current_predict_data = predict_data[predict_data['iu_ac'] == current_id]
+        current_predict_dataset = TrafficDataset(current_predict_data, 24, 0, device=device)
+        predictions = predict(model, current_predict_dataset)
+        result = torch.cat((result, predictions), dim=0)
+    result = result.flatten()
+    save_prediction(result, savepath)
