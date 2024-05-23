@@ -1,12 +1,3 @@
-/**
- * This program removes the barre column from the input file
- * and writes the result to a new file (train.csv).
- * It will turn the time string into a timestamp.
- * 
- * Output format:
- *  index, timestamp, value
-*/
-
 #include "../data.h"
 #include <chrono>
 #include <fstream>
@@ -49,7 +40,7 @@ constexpr size_t kCOUNT = 10000;
 size_t appearance[kCOUNT];
 
 void print_meta() {
-    std::ofstream meta("meta.csv", std::ios::trunc);
+    std::ofstream meta(Path::meta_csv, std::ios::trunc);
     for (size_t i = 0; i < kCOUNT; i++) {
         auto cnt = appearance[i];
         if (cnt == 0) continue;
@@ -58,15 +49,14 @@ void print_meta() {
 }
 
 signed main() {
-    std::ifstream input("loop_sensor_train.csv");
+    auto start = std::chrono::high_resolution_clock::now();
+    std::ifstream input(Path::raw_train_csv);
 
     std::string line;
     std::getline(input, line);
     assert(line == "iu_ac,t_1h,etat_barre,q");
 
-    std::ofstream output("train.csv", std::ios::trunc);
-
-    auto start = std::chrono::high_resolution_clock::now();
+    std::ofstream output(Path::train_csv, std::ios::trunc);
 
     while (std::getline(input, line)) {
         auto [timestamp, index, barre, value] = process_raw(line);
@@ -77,9 +67,6 @@ signed main() {
     print_meta();
 
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout <<
-        std::format("Time: {}ms\n",
-            std::chrono::duration_cast <std::chrono::milliseconds>
-                (finish - start).count());
+    std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";
     return 0;
 }

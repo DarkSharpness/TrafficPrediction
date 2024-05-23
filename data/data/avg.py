@@ -28,29 +28,41 @@ prepare()
 average = sum(data_value) / len(data_value)
 data_value = [value - average for value in data_value]
 
-# Average sum of the value of certain time of certain day in the week
-avg = []
 
-for i in range(7 * 24):
-    avg.append([])
+def jpp(mod):
+    avg = []
 
-for i in range(len(data_times)):
-    index = data_times[i] % (7 * 24)
-    avg[index].append(data_value[i])
+    for i in range(mod):
+        avg.append([])
 
-for i in range(7 * 24):
-    avg[i] = sum(avg[i]) / len(avg[i])
+    for i in range(len(data_times)):
+        index = data_times[i] % mod
+        avg[index].append(data_value[i])
 
-# Calculate the loss
-data_predict = []
-loss = 0
-for i in range(len(data_times)):
-    index = data_times[i] % (7 * 24)
-    data_predict.append(avg[index])
-    loss += (data_value[i] - avg[index]) ** 2
-loss /= len(data_times)
+    for i in range(mod):
+        avg[i] = sum(avg[i]) / len(avg[i])
 
-print(loss)
+    # Calculate the loss
+    data_predict = []
+    loss = 0
+    for i in range(len(data_times)):
+        index = data_times[i] % mod
+        data_predict.append(avg[index])
+        loss += (data_value[i] - avg[index]) ** 2
+    loss /= len(data_times)
+
+    # print(loss)
+    return loss
+
+losses = []
+
+for mod in range(1, 100):
+    losses.append(jpp(mod * 24))
+
+minn = min(losses)
+
+print(losses.index(minn))
+
 
 def display(x,y,y_fit):
     plt.figure(figsize=(10, 6))
@@ -68,4 +80,4 @@ def display(x,y,y_fit):
     # 显示图表
     plt.show()
 
-display(data_times, data_value, data_predict)
+# display(data_times, data_value, data_predict)

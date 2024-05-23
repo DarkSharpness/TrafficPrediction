@@ -16,7 +16,7 @@ size_t appear[kCOUNT];
 std::vector <double> train[kCOUNT];
 
 void read_meta() {
-    std::ifstream in("meta.csv");
+    std::ifstream in(Path::meta_csv);
     assert(in.is_open());
     std::string str;
     while (std::getline(in, str)) {
@@ -31,7 +31,7 @@ void read_meta() {
 void read_train() {
     read_meta();
 
-    std::ifstream in("train.csv");
+    std::ifstream in(Path::train_csv);
     assert(in.is_open());
     std::string str;
 
@@ -141,7 +141,7 @@ double make_pred(std::string_view line) {
 std::vector <double> base;
 
 void read_base() {
-    std::ifstream in("loop_sensor_test_baseline.csv");
+    std::ifstream in(Path::baseline_csv);
     assert(in.is_open());
     base.resize(439300, -1);
 
@@ -159,7 +159,7 @@ void read_base() {
 std::vector <double> result;
 
 void read_pred() {
-    std::ifstream in("pred.csv");
+    std::ifstream in(Path::pred_csv);
     assert(in.is_open());
     std::string str;
     std::ofstream out("result.csv");

@@ -40,7 +40,7 @@ import sample as utils
 # tx,ty,tz = input("Input the range:").split()
 # tx,ty,tz = int(tx),int(ty),int(tz)
 
-def func(tx, ty, tz):
+def func(tx, ty, tz, tw):
     periods = []
 
     for i in range(1, tx):
@@ -49,7 +49,13 @@ def func(tx, ty, tz):
     for i in range(1, ty):
         periods.append(24. * 7 / i)
 
-    for i in range(1, tz):
+    # for i in range(1, tz):
+    #     periods.append(24. * 30 / i)
+
+    # for i in range(1, tz):
+    #     periods.append(24. * 90 / i)
+
+    for i in range(1, tw):
         periods.append(24. * 365 / i)
 
     periods = list(set(sorted(periods)))
@@ -62,11 +68,11 @@ def func(tx, ty, tz):
     print("Loss: ", loss)
 
     # Read a line
-    line = input()
-    data = line.split()
+    # line = input()
+    # data = line.split()
 
     # print(data)
-    data = utils.predict(data, periods, params)
+    # data = utils.predict(data, periods, params)
     # print(' '.join([str(x + average) for x in data]))
 
-func(7, 30, 30)
+func(7, 30, 30, 30)

@@ -143,3 +143,17 @@ double Reader::read <double> () {
     }
     return x;
 }
+
+namespace Path {
+
+using _Path_t = const char *;
+
+inline const _Path_t
+    train_csv       = "__exe__/train.csv",
+    pred_csv        = "__exe__/pred.csv",
+    meta_csv        = "__exe__/meta.csv",
+    raw_train_csv   = "loop_sensor_train.csv",
+    raw_pred_csv    = "loop_sensor_test_x.csv",
+    baseline_csv    = "loop_sensor_test_baseline.csv";
+
+} // namespace Path
