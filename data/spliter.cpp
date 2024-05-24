@@ -9,12 +9,15 @@ struct IndexPack {
     double value;
 };
 
+std::vector <size_t> visited;
+
 void split_work(size_t index, std::span <IndexPack> data) {
     std::ofstream out(std::format("index/{}.csv", index));
     for (auto [times, value] : data)
         out << std::format("{},{}\n", times, value);
     assert(out.is_open());
     out.close();
+    visited.push_back(index);
 }
 
 void read_train() {
@@ -42,10 +45,18 @@ void read_train() {
     }
 }
 
+void write_list() {
+    std::ofstream out("index/_list.csv");
+    assert(out.is_open());
+    for (auto index : visited)
+        out << std::format("{} ", index);
+}
+
 signed main() {
     auto start = std::chrono::high_resolution_clock::now();
     std::filesystem::create_directory("index");
     read_train();
+    write_list();
     auto finish = std::chrono::high_resolution_clock::now();
     std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";
     return 0;
