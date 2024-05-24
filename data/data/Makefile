@@ -10,10 +10,10 @@ init:
 
 run:
 	./$(EXE_PATH)/train
-	./$(EXE_PATH)/spliter
 	./$(EXE_PATH)/pred
 	./$(EXE_PATH)/cleaner
 	./$(EXE_PATH)/flatten
+	./$(EXE_PATH)/spliter
 
 compile:
 	g++ train.cpp -o $(EXE_PATH)/train -std=c++20 -O3

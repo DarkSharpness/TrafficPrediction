@@ -162,6 +162,7 @@ inline const _Path_t
     raw_result_csv  = "raw.csv",
     final_result_csv= "__exe__/result.csv",
     flat_dat_csv    = "__exe__/flat.dat.csv",
-    flat_idx_csv    = "__exe__/flat.idx.csv";
+    flat_idx_csv    = "__exe__/flat.idx.csv",
+    pred_fmt_csv    = "__exe__/pred.fmt.csv";
 
 } // namespace Path
