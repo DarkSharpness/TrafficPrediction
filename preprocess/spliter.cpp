@@ -55,7 +55,7 @@ void write_list() {
 
 signed main() {
     auto start = std::chrono::high_resolution_clock::now();
-    std::filesystem::create_directory("index");
+    // std::filesystem::create_directory("index");
     read_train();
     write_list();
     auto finish = std::chrono::high_resolution_clock::now();

@@ -25,6 +25,4 @@ compile:
 
 clean:
 	rm __exe__/* -rf
-	rm index/* -rf
 	rmdir __exe__
-	rmdir index
