@@ -1,4 +1,4 @@
-#include "../data.h"
+#include "data.h"
 #include <chrono>
 #include <fstream>
 #include <filesystem>

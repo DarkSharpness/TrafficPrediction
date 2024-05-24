@@ -1,4 +1,4 @@
-#include "../data.h"
+#include "data.h"
 #include <vector>
 #include <fstream>
 #include <unordered_set>
