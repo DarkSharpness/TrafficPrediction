@@ -27,32 +27,47 @@ void flatten_data() {
     }
 }
 
-void flatten_index() {
+void flatten_and_finetune_index() {
     std::ofstream out(Path::flat_idx_csv);
+    std::ofstream tune(Path::finetune_csv);
     assert(out.is_open());
     size_t index = 0;
     size_t avail = 0;
+    std::string line;
+
     for (size_t i = 0; i < kCount; i++) {
         if (train[i].size() == 0) continue;
+
+        line.clear();
+        line += std::format("{}:", i);
+
         for (size_t j = 0; j < kTimes - kAmount; j++) {
             if (train[i][j] == -1) continue;
-            if (is_available(i, j))
-                out << index << '\n', avail++;
+            if (is_available(i, j)) {
+                avail++;
+                out << index << '\n';
+                line += std::format("{},", index);
+            }
             index++;
         }
+
+        line.back() = '\n';
+        tune << line;
     }
+
     ::normal_count = index;
 }
 
 // Flatten the data for training
 void flatten_train_data() {
     flatten_data();
-    flatten_index();
+    flatten_and_finetune_index();
 }
 
 // Find abnormal peeks in the data, and filter them out.
 void filter_peek() {
     constexpr size_t kPeriod = 24 * 7;
+    [[maybe_unused]]
     static Math::statistic __data[kPeriod];
 
     std::vector <double> cached;
@@ -101,7 +116,6 @@ void filter_peek() {
 }
 
 void debug_print() {
-    std::cerr << "Flatten training data successfully." << std::endl;
     std::cerr << "Abnormal proportion: " <<
         double(abnormal_count) / normal_count << std::endl;
 }
@@ -110,5 +124,6 @@ signed main() {
     Function::read_train();
     // filter_peek();
     flatten_train_data();
-    debug_print();
+    // debug_print();
+    std::cerr << "Flatten data (pre-train | finetune) successfully." << std::endl;
 }

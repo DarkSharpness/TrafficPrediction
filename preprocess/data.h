@@ -136,7 +136,8 @@ inline const _Path_t
     graph_out       = "data/graph.out",         // Graph description
     geo_near_csv    = "__exe__/near.csv",       // k nearest
     geo_stream_csv  = "__exe__/stream.csv",     // up & down stream
-    geo_train_csv   = "__exe__/train.csv";      // training by geo
+    geo_train_csv   = "__exe__/train.csv",      // training by geo
+    finetune_csv    = "__exe__/finetune.idx.csv";   // finetune data index
 
 } // namespace Path
 
