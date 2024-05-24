@@ -35,11 +35,19 @@ void flatten_and_finetune_index() {
     size_t avail = 0;
     std::string line;
 
+    struct Guard {
+        std::ofstream &out;
+        std::string &str;
+        ~Guard() { out << str << '\n'; }
+    };
+
     for (size_t i = 0; i < kCount; i++) {
-        if (train[i].size() == 0) continue;
+        Guard guard { tune, line };
 
         line.clear();
         line += std::format("{}:", i);
+
+        if (train[i].size() == 0) continue;
 
         for (size_t j = 0; j < kTimes - kAmount; j++) {
             if (train[i][j] == -1) continue;
@@ -51,8 +59,7 @@ void flatten_and_finetune_index() {
             index++;
         }
 
-        line.back() = '\n';
-        tune << line;
+        if (line.back() == ',') line.pop_back();
     }
 
     ::normal_count = index;
