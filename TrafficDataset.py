@@ -1,9 +1,17 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import torch
-from tqdm import tqdm
+
+
+__all__ = [
+    'TrafficDatasetTrain',
+    'TrafficDatasetPredict',
+    'TrafficDatasetFinetune',
+    'TrafficDatasetPredictSpec'
+]
+
 
 class TrafficDataset(Dataset):
-    def __init__(self, data, seq_len, pred_len, device = torch.device("cuda" if torch.cuda.is_available() else "cpu")):
+    def __init__(self, data, seq_len, pred_len, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
         self.data = data
         self.seq_len = seq_len
         self.pred_len = pred_len
@@ -33,19 +41,63 @@ class TrafficDataset(Dataset):
 
 class TrafficDatasetTrain(Dataset):
     def __init__(self, idx, data, seq_len, pred_len, device) -> None:
-        # if len(time) != len(data):
-        #     raise ValueError("time and data must have the same length")
         super().__init__()
         self.data = data
         self.seq_len = seq_len
         self.pred_len = pred_len
         self.bag_size = seq_len + pred_len
         self.idx = idx
-        self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
 
     def __len__(self):
         return len(self.idx)
 
     def __getitem__(self, idx):
         idx = self.idx[idx]
-        return torch.tensor(self.data[idx: idx+self.seq_len], dtype=torch.float32, device=self.device).reshape(-1, 1), torch.tensor(self.data[idx+self.seq_len: idx+self.seq_len+self.pred_len],dtype=torch.float32, device=self.device).reshape(-1, 1)
+        x = torch.tensor(self.data[idx: idx+self.seq_len],
+                         dtype=torch.float32, device=self.device).reshape(-1, 1)
+        y = torch.tensor(self.data[idx+self.seq_len: idx+self.seq_len+self.pred_len],
+                         dtype=torch.float32, device=self.device).reshape(-1, 1)
+        return x, y
+
+
+class TrafficDatasetPredict(Dataset):
+    def __init__(self, filename, seq_len=24, device=torch.device('cpu')):
+        super().__init__()
+        lines = open(filename, 'r').readlines()
+        self.data = []
+        for line in lines:
+            line = line.strip()
+            if line == '':
+                continue
+            numbers = line.strip().split(',')
+            if len(numbers) != seq_len:
+                raise ValueError(
+                    "seq_len must be equal to the length of the data")
+            numbers = [float(number) for number in numbers]
+            numbers = torch.tensor(
+                numbers, dtype=torch.float32, device=device).reshape(-1, 1)
+            self.data.append(numbers)
+        self.device = device
+        if len(self.data) != 439298:
+            raise ValueError("The length of the data must be 439298")
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx], torch.tensor([], device=self.device)
+
+
+class TrafficDatasetPredictSpec(Dataset):
+    def __init__(self, L: int, R: int, predict_dataset: TrafficDatasetPredict):
+        super().__init__()
+        self.L = L
+        self.R = R
+        self.predict_dataset = predict_dataset
+
+    def __len__(self):
+        return self.R - self.L + 1
+
+    def __getitem__(self, idx):
+        return self.predict_dataset[idx + self.L]
