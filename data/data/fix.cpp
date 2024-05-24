@@ -8,42 +8,50 @@ constexpr size_t kTIMES = 20000;
 size_t appear[kCOUNT];
 std::vector <double> train[kCOUNT];
 
-constexpr size_t kTable = 24 * 7;
 
 struct Table {
-    std::array <double, kTable> data;
+    static constexpr size_t kWeek = 24 * 7;
+    static constexpr size_t kHour = 24;
+    std::array <double, kWeek> week_data;
+    std::array <double, kHour> hour_data;
     double global;
     bool init {};
 
     void try_init(std::span <double> arr) {
-        if (init) return;
+        assert(init == 0);
         init = true;
 
         assert(arr.size() == kTIMES);
-        size_t count[kTable] {};
+        size_t week_count[kWeek] {};
+        size_t hour_count[kHour] {};
+        size_t global_count {};
 
-        for (size_t i = 0 ; i < kTIMES ; ++i)
-            data[i % kTable] += arr[i],
-            count[i % kTable] += 1;
-
-        size_t total = 0;
-        for (size_t i = 0 ; i < kTable ; ++i) {
-            global += data[i];
-            total += count[i];
-            if (count[i] == 0)
-                data[i] = -1;
-            else
-                data[i] /= count[i];
+        for (size_t i = 0 ; i < kTIMES ; ++i) {
+            week_data[i % kWeek] += arr[i];
+            hour_data[i % kHour] += arr[i];
+            week_count[i % kWeek] += 1;
+            hour_count[i % kHour] += 1;
+            global += arr[i];
+            global_count += 1;
         }
 
-        assert(total != 0);
-        global /= total;
+        for (size_t i = 0 ; i < kWeek ; ++i)
+            week_data[i] /= week_count[i];
+        for (size_t i = 0 ; i < kHour ; ++i)
+            hour_data[i] /= hour_count[i];
+        global /= global_count;
     }
 
     double get_average(size_t times) const {
         assert(init);
-        size_t entry = times % kTable;
-        return data[entry] == -1 ? global : data[entry];
+
+        size_t week = times % kWeek;
+        if (week_data[week] != -1) return week_data[week];
+
+        size_t hour = times % kHour;
+        if (hour_data[hour] != -1) return hour_data[hour];
+
+        return global;
     }
 };
 
@@ -82,26 +90,32 @@ void read_train() {
             table[i].try_init(train[i]);
 }
 
-constexpr size_t kWindow = 24;
 
+constexpr size_t kWindow = 24;
 size_t count_of_missing[kWindow + 1];
 using _Format_Pred_t = std::array <double, kWindow>;
 
+#include <unordered_set>
+
 void fill_pred(_Format_Pred_t &arr, size_t index, size_t times) {
     // Can no fill up the prediction
-    if (train[index].empty()) return;
+    if (train[index].empty()) {
+        static std::unordered_set <size_t> set;
+        if (set.insert(index).second)
+            std::cerr << std::format("No data for index {}\n", index);
+        return;
+    }
 
-    times -= (kWindow + 1);
+    assert(times >= kWindow);
 
-    for (size_t i = 0; i < kWindow; i++)
-        arr[i] = train[index].at(times + i);
-
+    auto start = times - kWindow;
     size_t missing = 0;
+
     for (size_t i = 0 ; i < kWindow ; ++i) {
+        arr[i] = train[index][start + i];
         if (arr[i] != -1) continue;
         ++missing;
-        auto value = table[index].get_average(times + i);
-        arr[i] = value;
+        arr[i] = table[index].get_average(start + i);
     }
 
     ++count_of_missing[missing];
