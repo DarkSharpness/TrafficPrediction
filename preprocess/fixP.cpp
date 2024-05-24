@@ -83,22 +83,30 @@ void process_train() {
             table[i].try_init(train[i]);
 }
 
+
 void make_pred_idx() {
+    static std::pair <size_t, size_t> temp[kCount];
+
     std::ofstream idx(Path::predict_idx_csv);
 
     size_t last     = prediction[0].index;
     size_t front    = 0;
+
     for (size_t i = 0 ; i < prediction.size() ; ++i) {
         auto [index, times] = prediction[i];
         if (index != last) {
             // last : [front, i - 1]
-            idx << std::format("{},{},{}\n", last, front + 1, i - 1 + 1);
+            temp[last] = { front + 1, i - 1 + 1 };
+            // idx << std::format("{},{},{}\n", last, front + 1, i - 1 + 1);
             front = i;
             last = index;
         }
     }
 
-    idx << std::format("{},{},{}\n", last, front + 1, prediction.size());
+    temp[last] = { front + 1, prediction.size() - 1 + 1 };
+
+    for (size_t i = 0 ; i < kCount ; ++i)
+        idx << std::format("{},{},{}\n", i, temp[i].first, temp[i].second);
 }
 
 void process_pred() {
