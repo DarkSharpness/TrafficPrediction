@@ -25,25 +25,25 @@ void print_graph() {
         if (nodes[i].in_.size() == 0
          && nodes[i].out.size() == 0) continue;
 
-        std::cout << std::format("Node {}. ", i);
+        std::cerr << std::format("Node {}. ", i);
 
         if (nodes[i].in_.size() > 0) {
-            std::cout << "In: ";
+            std::cerr << "In: ";
             for (size_t j : nodes[i].in_)
-                std::cout << j << ' ';
+                std::cerr << j << ' ';
         }
 
         if (nodes[i].out.size() > 0) {
-            std::cout << "Out: ";
+            std::cerr << "Out: ";
             for (size_t j : nodes[i].out) {
-                std::cout << j << ' ';
+                std::cerr << j << ' ';
             }
         }
 
-        std::cout << std::endl;
+        std::cerr << std::endl;
     }
 
-    std::cout << std::format("{:-^50}\n", ' ');
+    std::cerr << std::format("{:-^50}\n", ' ');
 }
 
 void write_graph() {
@@ -86,7 +86,7 @@ void write_graph() {
     }
 
     for (const auto& [k, v] : count)
-        std::cout << std::format("In + out = {} : {}\n", k, v);
+        std::cerr << std::format("In + out = {} : {}\n", k, v);
 }
 
 
