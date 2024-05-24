@@ -162,7 +162,7 @@ void read_pred() {
     std::ifstream in(Path::pred_csv);
     assert(in.is_open());
     std::string str;
-    std::ofstream out("result.csv");
+    std::ofstream out(Path::final_result_csv);
     out << "id,estimate_q\n";
     result.resize(439300, -1);
     size_t cnt = 0;

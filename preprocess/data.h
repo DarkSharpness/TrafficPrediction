@@ -118,22 +118,25 @@ namespace Path {
 using _Path_t = const char *;
 
 inline const _Path_t
-    train_csv       = "__exe__/train.csv",  // training data
-    pred_csv        = "__exe__/pred.csv",   // prediction task
-    meta_csv        = "__exe__/meta.csv",   // meta data, occurance data
-    all0_csv        = "__exe__/all0.csv",   // Prefix 0
-    mid0_csv        = "__exe__/mid0.csv",   // Consecutive 0
-    raw_train_csv   = "loop_sensor_train.csv",
-    raw_pred_csv    = "loop_sensor_test_x.csv",
-    baseline_csv    = "loop_sensor_test_baseline.csv",
-    raw_result_csv  = "raw.csv",
+    train_csv       = "__exe__/train.csv",      // training data
+    pred_csv        = "__exe__/pred.csv",       // prediction task
+    meta_csv        = "__exe__/meta.csv",       // meta data, occurance data
+    all0_csv        = "__exe__/all0.csv",       // Prefix 0
+    mid0_csv        = "__exe__/mid0.csv",       // Consecutive 0
+    list_csv        = "__exe__/list.csv",       // List of all the index used.
+    raw_train_csv   = "data/loop_sensor_train.csv",
+    raw_pred_csv    = "data/loop_sensor_test_x.csv",
+    baseline_csv    = "data/loop_sensor_test_baseline.csv",
+    raw_result_csv  = "data/raw.csv",
     final_result_csv= "__exe__/result.csv",
     flat_dat_csv    = "__exe__/flat.dat.csv",
     flat_idx_csv    = "__exe__/flat.idx.csv",
     pred_fmt_csv    = "__exe__/pred.fmt.csv",
-    geo_near_csv    = "__geo__/near.csv",   // k nearest
-    geo_stream_csv  = "__geo__/stream.csv", // up & down stream
-    geo_train_csv   = "__geo__/train.csv";  // training by geo
+    geo_raw_csv     = "data/geo_reference.csv", // Geo reference
+    graph_out       = "data/graph.out",         // Graph description
+    geo_near_csv    = "__exe__/near.csv",       // k nearest
+    geo_stream_csv  = "__exe__/stream.csv",     // up & down stream
+    geo_train_csv   = "__exe__/train.csv";      // training by geo
 
 } // namespace Path
 

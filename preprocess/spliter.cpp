@@ -11,12 +11,13 @@ struct IndexPack {
 
 std::vector <size_t> visited;
 
+// Just add to visit
 void split_work(size_t index, std::span <IndexPack> data) {
-    std::ofstream out(std::format("index/{}.csv", index));
-    for (auto [times, value] : data)
-        out << std::format("{},{}\n", times, value);
-    assert(out.is_open());
-    out.close();
+    // std::ofstream out(std::format("index/{}.csv", index));
+    // for (auto [times, value] : data)
+    //     out << std::format("{},{}\n", times, value);
+    // assert(out.is_open());
+    // out.close();
     visited.push_back(index);
 }
 
@@ -46,7 +47,7 @@ void read_train() {
 }
 
 void write_list() {
-    std::ofstream out("index/_list.csv");
+    std::ofstream out(Path::list_csv);
     assert(out.is_open());
     for (auto index : visited)
         out << std::format("{} ", index);

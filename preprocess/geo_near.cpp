@@ -103,7 +103,7 @@ void write_geo() {
 
 signed main() {
     std::string str;
-    std::ifstream in("geo_reference.csv");
+    std::ifstream in(Path::geo_raw_csv);
     std::getline(in, str);
 
     while (std::getline(in, str))

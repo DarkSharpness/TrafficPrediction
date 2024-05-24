@@ -49,8 +49,8 @@ void print_graph() {
 void write_graph() {
     // Read the list of nodes that may appear in the graph
     std::unordered_set <size_t> in_list = []() {
-        if (std::ifstream input("index/_list.csv"); input.fail()) {
-            std::cerr << "Can't open index/_list.csv\n";
+        if (std::ifstream input(Path::list_csv); input.fail()) {
+            std::cerr << "Can't open list.csv\n";
             std::exit(1);
         } else {
             std::unordered_set <size_t> list;
@@ -91,7 +91,7 @@ void write_graph() {
 
 
 signed main() {
-    std::ifstream input("graph.out");
+    std::ifstream input(Path::graph_out);
 
     size_t n;
     input >> n;
