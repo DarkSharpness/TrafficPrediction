@@ -1,6 +1,5 @@
 #include "data.h"
 #include <fstream>
-#include <print>
 #include <vector>
 #include <algorithm>
 
@@ -67,6 +66,41 @@ void read_line(std::string_view str) {
     auto geo_shape      = reader.split();
 }
 
+constexpr size_t kNEAR = 10;
+
+void find_near(point &self) {
+    for (auto j = size_t{}; j < kCOUNT; j++) {
+        distance[j] = { dist(self, array[j]), j };
+
+        std::sort(distance, distance + kCOUNT);
+        assert(distance[0].first == 0);
+        self.nearest.resize(kNEAR + 1);
+        for (size_t i = 0 ; i < kNEAR + 1 ; ++i)
+            self.nearest[i] = distance[i].second;
+    }
+}
+
+void write_geo() {
+    std::ofstream out(Path::geo_near_csv);
+    std::string line;
+
+    for (auto &self : array) {
+        if (self.x == 0 && self.y == 0) continue;
+        auto view = std::span(self.nearest.data(), kNEAR + 1);
+
+        line.clear();
+        line += std::format("{}: [", view[0]);
+
+        for (auto &j : view.subspan(1))
+            line += std::format("{},", j);
+
+        line.back() = ']';
+        line.push_back('\n');
+
+        out << line;
+    }
+}
+
 signed main() {
     std::string str;
     std::ifstream in("geo_reference.csv");
@@ -75,33 +109,9 @@ signed main() {
     while (std::getline(in, str))
         read_line(str);
 
-    constexpr size_t kNEAR = 10;
+    for (auto &self : array)
+        find_near(self);
 
-    for (auto &self : array) {
-        for (auto j = size_t{}; j < kCOUNT; j++)
-            distance[j] = { dist(self, array[j]), j };
-
-        std::sort(distance, distance + kCOUNT);
-        assert(distance[0].first == 0);
-        self.nearest.resize(kNEAR + 1);
-        for (size_t i = 0 ; i < kNEAR + 1 ; ++i)
-            self.nearest[i] = distance[i].second;
-    }
-
-    std::ofstream out("3.tmp", std::ios::trunc);
-
-    for (auto &self : array) {
-        if (self.x == 0 && self.y == 0) continue;
-        auto view = std::span <size_t> (self.nearest.data(), kNEAR + 1);
-
-        std::print(out, "{}: [", view[0]);
-        view = view.subspan(1);
-
-        for (auto &j : view)
-            std::print(out, "{}, ", j);
-        out.seekp(-2, std::ios::cur); // remove the last ", "
-
-        std::print(out, "]\n");
-    }
+    write_geo();
     return 0;
 }

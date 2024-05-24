@@ -1,4 +1,5 @@
 EXE_PATH = __exe__
+GEO_PATH = __geo__
 
 build:
 	make init
@@ -7,6 +8,7 @@ build:
 
 init:
 	mkdir -p $(EXE_PATH)
+	mkdir -p $(GEO_PATH)
 
 run:
 	./$(EXE_PATH)/train

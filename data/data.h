@@ -163,6 +163,8 @@ inline const _Path_t
     final_result_csv= "__exe__/result.csv",
     flat_dat_csv    = "__exe__/flat.dat.csv",
     flat_idx_csv    = "__exe__/flat.idx.csv",
-    pred_fmt_csv    = "__exe__/pred.fmt.csv";
+    pred_fmt_csv    = "__exe__/pred.fmt.csv",
+    geo_near_csv    = "__geo__/near.csv",   // k nearest
+    geo_stream_csv  = "__geo__/stream.csv"; // up & down stream
 
 } // namespace Path
