@@ -44,6 +44,9 @@ void read_train() {
 
         data.push_back({times, value});
     }
+
+    split_work(last, data);
+
 }
 
 void write_list() {
