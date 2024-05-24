@@ -3,11 +3,7 @@
 #include <fstream>
 #include <array>
 
-constexpr size_t kCOUNT = 10000;
-constexpr size_t kTIMES = 20000;
-
-size_t appear[kCOUNT];
-std::vector <double> train[kCOUNT];
+size_t appear[kCount];
 
 void read_meta() {
     std::ifstream in(Path::meta_csv);
@@ -18,7 +14,7 @@ void read_meta() {
         auto index = reader.read<size_t>();
         auto count = reader.read<size_t>();
         appear[index] = count;
-        train[index].resize(kTIMES, -1);
+        train[index].resize(kTimes, -1);
     }
 }
 
@@ -82,11 +78,11 @@ void clear_prefix_0() {
     // whole data, we can safely remove them.
     // We record all these all-0 index, and then remove data.
 
-    for (size_t i = 0; i < kCOUNT; i++) {
+    for (size_t i = 0; i < kCount; i++) {
         if (appear[i] > 0) {
             size_t cnt {};
             size_t last_0 {};
-            for (size_t j = 0; j < kTIMES; j++) {
+            for (size_t j = 0; j < kTimes; j++) {
                 if (train[i][j] == -1) continue;
                 if (train[i][j] != 0) {
                     break;
@@ -116,12 +112,12 @@ void clear_prefix_0() {
 
 void clear_middle_0() {
     std::ofstream out(Path::mid0_csv, std::ios::app);
-    for (size_t i = 0 ; i < kCOUNT ; i++) {
+    for (size_t i = 0 ; i < kCount ; i++) {
         if (appear[i] > 0) {
             size_t cnt {}; // count of consecutive 0
             size_t beg {}; // First 0 position
             size_t pos {}; // Last position 
-            for (size_t j = 0; j < kTIMES; j++) {
+            for (size_t j = 0; j < kTimes; j++) {
                 if (train[i][j] == -1) continue;
                 if (train[i][j] != 0) {
                     // Consecutive 0 in [beg, pos]
@@ -188,11 +184,11 @@ void fix_middle_0() {
 
 void rewrite_meta() {
     std::ofstream out(Path::meta_csv);
-    for (size_t i = 0; i < kCOUNT; i++) {
+    for (size_t i = 0; i < kCount; i++) {
         if (appear[i] == 0) continue;
 
         size_t appear = 0;
-        for (size_t j = 0; j < kTIMES; j++)
+        for (size_t j = 0; j < kTimes; j++)
             if (train[i][j] != -1) ++appear;
 
         out << std::format("{},{}\n", i, appear);
@@ -202,9 +198,9 @@ void rewrite_meta() {
 
 void rewrite_train() {
     std::ofstream out(Path::train_csv);
-    for (size_t i = 0; i < kCOUNT; i++) {
+    for (size_t i = 0; i < kCount; i++) {
         if (appear[i] == 0) continue;
-        for (size_t j = 0; j < kTIMES; j++) {
+        for (size_t j = 0; j < kTimes; j++) {
             if (train[i][j] == -1) continue;
             out << std::format("{},{},{}\n", i, j, train[i][j]);
         }

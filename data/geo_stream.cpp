@@ -77,9 +77,8 @@ void write_graph() {
         ++count[visited.size()];
 
         line.clear();
-        line += std::format("{} [", i);
+        line += std::format("[{};{}]: [", i, visited.size());
         for (size_t j : visited) line += std::format("{},", j);
-
 
         line.back() = ']';
         line += '\n';

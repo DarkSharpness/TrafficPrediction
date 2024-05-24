@@ -4,47 +4,13 @@
 #include <array>
 #include <cmath>
 
-constexpr size_t kCOUNT = 10000;
-constexpr size_t kTIMES = 20000;
-
-size_t appear[kCOUNT];
-std::vector <double> train[kCOUNT];
-
-void read_meta() {
-    std::ifstream in(Path::meta_csv);
-    assert(in.is_open());
-    std::string str;
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto index = reader.read<size_t>();
-        auto count = reader.read<size_t>();
-        appear[index] = count;
-        train[index].resize(kTIMES, -1);
-    }
-}
-
-void read_train() {
-    read_meta();
-
-    std::ifstream in(Path::train_csv);
-    assert(in.is_open());
-    std::string str;
-
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto iu_ac = reader.read<size_t>();
-        auto times = reader.read<size_t>();
-        auto value = reader.read<double>();
-        train[iu_ac][times] = value;
-    }
-}
 
 void flat_data() {
     std::ofstream out(Path::flat_dat_csv);
     assert(out.is_open());
-    for (size_t i = 0; i < kCOUNT; i++) {
-        if (appear[i] == 0) continue;
-        for (size_t j = 0; j < kTIMES; j++)
+    for (size_t i = 0 ; i < kCount ; i++) {
+        if (train[i].size() == 0) continue;
+        for (size_t j = 0 ; j < kTimes ; j++)
             if (train[i][j] != -1)
                 out << train[i][j] << '\n';
     }
@@ -67,9 +33,9 @@ void flat_index() {
     assert(out.is_open());
     size_t index = 0;
     size_t avail = 0;
-    for (size_t i = 0; i < kCOUNT; i++) {
-        if (appear[i] == 0) continue;
-        for (size_t j = 0; j < kTIMES - kAmount; j++) {
+    for (size_t i = 0; i < kCount; i++) {
+        if (train[i].size() == 0) continue;
+        for (size_t j = 0; j < kTimes - kAmount; j++) {
             if (train[i][j] == -1) continue;
             if (is_available(i, j))
                 out << index << '\n', avail++;
@@ -86,25 +52,25 @@ void make_flat() {
 }
 
 size_t q_cnt(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTIMES);
+    assert(data.size() == kTimes);
     size_t cnt = 0;
-    for (auto i = _Init; i < kCOUNT; i += _Step)
+    for (auto i = _Init; i < kCount; i += _Step)
         if (data[i] != -1) cnt++;
     return cnt;
 }
 
 double q_sum(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTIMES);
+    assert(data.size() == kTimes);
     double sum = 0;
-    for (auto i = _Init; i < kCOUNT; i += _Step)
+    for (auto i = _Init; i < kCount; i += _Step)
         if (data[i] != -1) sum += data[i];
     return sum;
 }
 
 double q_sqr(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTIMES);
+    assert(data.size() == kTimes);
     double sum = 0;
-    for (auto i = _Init; i < kCOUNT; i += _Step)
+    for (auto i = _Init; i < kCount; i += _Step)
         if (data[i] != -1) sum += data[i] * data[i];
     return sum;
 }
@@ -136,8 +102,8 @@ void filter_data() {
 
     size_t abnormal = 0;
 
-    for (size_t i = 0; i < kCOUNT; i++) {
-        if (appear[i] == 0) continue;
+    for (size_t i = 0; i < kCount; i++) {
+        if (train[i].size() == 0) continue;
 
         auto train = ::train[i];
         auto data  = statistic{}.init(train);
@@ -149,7 +115,7 @@ void filter_data() {
 
         cached = train;
 
-        for (size_t i = kWindow ; i < kTIMES - kWindow; i++) {
+        for (size_t i = kWindow ; i < kTimes - kWindow; i++) {
             if (train[i] == -1) continue;
 
             // All the data in the window should be available
@@ -176,7 +142,7 @@ void filter_data() {
 }
 
 signed main() {
-    read_train();
+    Function::read_train();
     filter_data();
     make_flat();
     std::cerr << "Flatten data successfully." << std::endl;

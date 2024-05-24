@@ -1,13 +1,5 @@
 #include "data.h"
-#include <fstream>
-#include <vector>
-
-constexpr size_t kCOUNT = 10000;
-constexpr size_t kTIMES = 20000;
-
-size_t appear[kCOUNT];
-std::vector <double> train[kCOUNT];
-
+#include <unordered_set>
 
 struct Table {
     static constexpr size_t kWeek = 24 * 7;
@@ -21,12 +13,12 @@ struct Table {
         assert(init == 0);
         init = true;
 
-        assert(arr.size() == kTIMES);
+        assert(arr.size() == kTimes);
         size_t week_count[kWeek] {};
         size_t hour_count[kHour] {};
         size_t global_count {};
 
-        for (size_t i = 0 ; i < kTIMES ; ++i) {
+        for (size_t i = 0 ; i < kTimes ; ++i) {
             week_data[i % kWeek] += arr[i];
             hour_data[i % kHour] += arr[i];
             week_count[i % kWeek] += 1;
@@ -55,47 +47,10 @@ struct Table {
     }
 };
 
-Table table[kCOUNT];
-
-void read_meta() {
-    std::ifstream in(Path::meta_csv);
-    assert(in.is_open());
-    std::string str;
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto index = reader.read<size_t>();
-        auto count = reader.read<size_t>();
-        appear[index] = count;
-        train[index].resize(kTIMES, -1);
-    }
-}
-
-void read_train() {
-    read_meta();
-
-    std::ifstream in(Path::train_csv);
-    assert(in.is_open());
-    std::string str;
-
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto iu_ac = reader.read<size_t>();
-        auto times = reader.read<size_t>();
-        auto value = reader.read<double>();
-        train[iu_ac][times] = value;
-    }
-
-    for (size_t i = 0 ; i < kCOUNT ; ++i)
-        if (!train[i].empty())
-            table[i].try_init(train[i]);
-}
-
-
+Table table[kCount];
 constexpr size_t kWindow = 24;
 size_t count_of_missing[kWindow + 1];
 using _Format_Pred_t = std::array <double, kWindow>;
-
-#include <unordered_set>
 
 void fill_pred(_Format_Pred_t &arr, size_t index, size_t times) {
     // Can no fill up the prediction
@@ -121,36 +76,35 @@ void fill_pred(_Format_Pred_t &arr, size_t index, size_t times) {
     ++count_of_missing[missing];
 }
 
-void read_pred() {
-    std::ifstream in(Path::pred_csv);
-    std::ofstream out(Path::pred_fmt_csv);
+void process_pred() {
+    Function::read_pred();
 
-    assert(in.is_open());
-    std::string str;
+    std::ofstream out(Path::pred_fmt_csv);
     _Format_Pred_t pred;
 
     std::string buf;
     buf.reserve(7 * kWindow + 1);
 
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto index = reader.read<size_t>();
-        auto times = reader.read<size_t>();
-
+    for (auto [index, times] : prediction) {
         fill_pred(pred, index, times);
 
         buf.clear();
         for (size_t i = 0 ; i < kWindow ; ++i)
             buf += std::format("{:.1f},", pred[i]);
         buf.back() = '\n';
+
         out << buf;
     }
 }
 
-signed main() {
-    read_train();
-    read_pred();
+void process_train() {
+    Function::read_train();
+    for (size_t i = 0 ; i < kCount ; ++i)
+        if (!train[i].empty())
+            table[i].try_init(train[i]);
+}
 
+void debug_print() {
     size_t count_of_prediction = 0;
     for (size_t i = 0 ; i <= kWindow ; i++)
         count_of_prediction += count_of_missing[i];
@@ -159,6 +113,11 @@ signed main() {
     for (size_t i = 0 ; i <= kWindow ; i++)
         std::cerr << std::format("Missing {} times: {}\n",
             i, (prev = count_of_missing[i]) / count_of_prediction * 100.0);
+}
 
+signed main() {
+    process_train();
+    process_pred();
+    debug_print();
     return 0;
 }

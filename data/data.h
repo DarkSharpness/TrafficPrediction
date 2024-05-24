@@ -13,10 +13,6 @@ void assert(T &&x, U &&str = "",
     std::exit(1);
 }
 
-struct TimeDiff {
-    size_t inner;
-    explicit TimeDiff(size_t inner) : inner(inner) {}
-};
 struct TimeStamp {
     static constexpr size_t kMONTH[] = {
         0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 366
@@ -24,15 +20,6 @@ struct TimeStamp {
 
     size_t inner;
     explicit TimeStamp(size_t inner) : inner(inner) {}
-
-    TimeStamp &operator += (TimeDiff td) {
-        inner += td.inner;
-        return *this;
-    }
-    TimeStamp &operator -= (TimeDiff td) {
-        inner -= td.inner;
-        return *this;
-    }
 
     // format as below:
     // 2022-01-12 00:00:00
@@ -73,26 +60,6 @@ struct TimeStamp {
     }
 
 };
-
-TimeDiff operator "" _h(unsigned long long x) {
-    return TimeDiff(x);
-}
-TimeDiff operator "" _d(unsigned long long x) {
-    return TimeDiff(x * 24);
-}
-
-TimeStamp operator + (TimeStamp ts, TimeDiff td) {
-    return TimeStamp(ts.inner + td.inner);
-}
-TimeStamp operator + (TimeDiff td, TimeStamp ts) {
-    return TimeStamp(ts.inner + td.inner);
-}
-TimeStamp operator - (TimeStamp ts, TimeDiff td) {
-    return TimeStamp(ts.inner - td.inner);
-}
-TimeDiff operator - (TimeStamp ts1, TimeStamp ts2) {
-    return TimeDiff(ts1.inner - ts2.inner);
-}
 
 struct Reader {
     std::string_view line;
@@ -165,6 +132,64 @@ inline const _Path_t
     flat_idx_csv    = "__exe__/flat.idx.csv",
     pred_fmt_csv    = "__exe__/pred.fmt.csv",
     geo_near_csv    = "__geo__/near.csv",   // k nearest
-    geo_stream_csv  = "__geo__/stream.csv"; // up & down stream
+    geo_stream_csv  = "__geo__/stream.csv", // up & down stream
+    geo_train_csv   = "__geo__/train.csv";  // training by geo
 
 } // namespace Path
+
+#include <fstream>
+#include <vector>
+
+
+struct Prediction {
+    size_t index;
+    size_t times;
+};
+
+// Count of all the trains.
+constexpr size_t kCount = 10000;
+// Maximum timestamp.
+constexpr size_t kTimes = 20000;
+
+// Raw training data.
+inline static std::vector <double> train[kCount];
+// Prediction data.
+inline static std::vector <Prediction> prediction;
+
+namespace Function {
+
+// Read the prediction data.
+inline static void read_pred() {
+    std::ifstream in(Path::pred_csv);
+    assert(in.is_open());
+
+    std::string str;
+    prediction.reserve(2000); // Enough count by hacking :)
+    while (std::getline(in, str)) {
+        auto reader = Reader {str};
+        auto index = reader.read<size_t>();
+        auto times = reader.read<size_t>();
+        prediction.emplace_back(index, times);
+    }
+}
+
+// Read the training data.
+inline static void read_train() {
+    std::ifstream in(Path::train_csv);
+    assert(in.is_open());
+    std::string str;
+    while (std::getline(in, str)) {
+        auto reader = Reader {str};
+        auto iu_ac = reader.read<size_t>();
+        auto times = reader.read<size_t>();
+        auto value = reader.read<double>();
+
+        if (train[iu_ac].empty())
+            train[iu_ac].resize(kTimes, -1);
+
+        train[iu_ac][times] = value;
+    }
+}
+
+
+} // namespace Function
