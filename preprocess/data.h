@@ -191,5 +191,9 @@ inline static void read_train() {
     }
 }
 
+inline static bool train_available(size_t index, size_t times) {
+    if (train[index].size() == 0) return false;
+    else return train[index][times] != -1;
+}
 
 } // namespace Function

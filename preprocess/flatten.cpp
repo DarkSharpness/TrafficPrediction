@@ -1,11 +1,22 @@
 #include "data.h"
+#include "flatten.h"
 #include <vector>
 #include <fstream>
 #include <array>
-#include <cmath>
 
+constexpr size_t kAmount = 24 + 1;
+size_t normal_count = 0;
+size_t abnormal_count = 0;
 
-void flat_data() {
+// Whether the data is available.
+bool is_available(size_t i, size_t j) {
+    for (size_t k = 0; k < kAmount; k++)
+        if (train[i][j + k] == -1)
+            return false;
+    return true;
+}
+
+void flatten_data() {
     std::ofstream out(Path::flat_dat_csv);
     assert(out.is_open());
     for (size_t i = 0 ; i < kCount ; i++) {
@@ -16,19 +27,7 @@ void flat_data() {
     }
 }
 
-constexpr size_t kAmount = 24 + 1;
-
-/** Whether the 25 data is available. */
-bool is_available(size_t i, size_t j) {
-    for (size_t k = 0; k < kAmount; k++)
-        if (train[i][j + k] == -1)
-            return false;
-    return true;
-}
-
-size_t normal_count = 0;
-
-void flat_index() {
+void flatten_index() {
     std::ofstream out(Path::flat_idx_csv);
     assert(out.is_open());
     size_t index = 0;
@@ -46,55 +45,15 @@ void flat_index() {
 }
 
 // Flatten the data for training
-void make_flat() {
-    flat_data();
-    flat_index();
+void flatten_train_data() {
+    flatten_data();
+    flatten_index();
 }
-
-size_t q_cnt(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTimes);
-    size_t cnt = 0;
-    for (auto i = _Init; i < kCount; i += _Step)
-        if (data[i] != -1) cnt++;
-    return cnt;
-}
-
-double q_sum(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTimes);
-    double sum = 0;
-    for (auto i = _Init; i < kCount; i += _Step)
-        if (data[i] != -1) sum += data[i];
-    return sum;
-}
-
-double q_sqr(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-    assert(data.size() == kTimes);
-    double sum = 0;
-    for (auto i = _Init; i < kCount; i += _Step)
-        if (data[i] != -1) sum += data[i] * data[i];
-    return sum;
-}
-
-struct statistic {
-    size_t cnt;
-    double avg;
-    double var;
-
-    auto init(std::span <double> data, size_t _Init = 0, size_t _Step = 1) {
-        cnt = q_cnt(data);
-        avg = q_sum(data) / cnt;
-        var = q_sqr(data) / cnt - avg * avg;
-        var = std::sqrt(var);
-        return *this;
-    }
-};
-
-size_t abnormal_count = 0;
 
 // Find abnormal peeks in the data, and filter them out.
-void filter_data() {
+void filter_peek() {
     constexpr size_t kPeriod = 24 * 7;
-    static statistic __data[kPeriod];
+    static Math::statistic __data[kPeriod];
 
     std::vector <double> cached;
 
@@ -106,7 +65,7 @@ void filter_data() {
         if (train[i].size() == 0) continue;
 
         auto train = ::train[i];
-        auto data  = statistic{}.init(train);
+        auto data  = Math::statistic{}.init(train);
 
         if (data.cnt < 500) continue;
 
@@ -141,12 +100,15 @@ void filter_data() {
     abnormal_count = abnormal;
 }
 
-signed main() {
-    Function::read_train();
-    filter_data();
-    make_flat();
-    std::cerr << "Flatten data successfully." << std::endl;
+void debug_print() {
+    std::cerr << "Flatten training data successfully." << std::endl;
     std::cerr << "Abnormal proportion: " <<
         double(abnormal_count) / normal_count << std::endl;
-    return 0;
+}
+
+signed main() {
+    Function::read_train();
+    // filter_peek();
+    flatten_train_data();
+    debug_print();
 }
