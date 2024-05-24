@@ -140,7 +140,7 @@ void read_pred() {
         fill_pred(pred, index, times);
 
         buf.clear();
-        for (size_t i = 0 ; i < 24 ; ++i)
+        for (size_t i = 0 ; i < kWindow ; ++i)
             buf += std::format("{:.1f},", pred[i]);
         buf.back() = '\n';
         out << buf;
