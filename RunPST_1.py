@@ -8,16 +8,35 @@ import torch.nn as nn
 import numpy as np
 import torch.utils.data
 from TrafficDataset import TrafficDatasetTrain, TrafficDataset
-from models.PST import Model, Configs
+from models.PST import Model
 
 from tqdm import tqdm
 import os
 
+class Configs:
+    seq_len = 24
+    pred_len = 1
+    individual = False
+    enc_in = 1  # 单通道，即每个探头一个时间序列
+    drop = 0.2  # Dropout率
+    revin = True  # 启用RevIN
+    channel = 1  # 输入通道数量
+    e_layers = 2
+    n_heads = 8
+    d_model = 64
+    d_ff = 256
+    dropout = 0.15
+    fc_dropout = 0.1
+    head_dropout = 0.1
+    patch_len = 16
+    stride = 8
+    padding_patch = False
+    decomposition = True
+    kernel_size = 25
+    affine = True
+    subtract_last = True
 
 config = Configs()
-config.seq_len = 24
-config.pred_len = 1
-config.individual = False
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # device = torch.device('cpu')

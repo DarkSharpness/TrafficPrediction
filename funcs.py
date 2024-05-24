@@ -8,12 +8,14 @@ from TrafficDataset import *
 import pandas as pd
 from datapath import *
 
+
 def load_model(path: str):
     if os.path.exists(path):
         model = torch.load(path, map_location=torch.device('cpu'))
         return model
     else:
         return None
+
 
 def save_model(model: nn.Module, path: str, loss: float):
     def gen_filename(k):
@@ -31,6 +33,7 @@ def save_model(model: nn.Module, path: str, loss: float):
         os.makedirs(prefix, exist_ok=True)
     torch.save(model, filename)
 
+
 def train_once(model, dataloader, criterion, optimizer, doLog: bool = False) -> float:
     epoch_loss = 0
     for seq_x, seq_y in (tqdm(dataloader) if doLog else dataloader):
@@ -44,12 +47,14 @@ def train_once(model, dataloader, criterion, optimizer, doLog: bool = False) -> 
     return epoch_loss / len(dataloader)
     # return epoch_loss / k
 
+
 def train(model: nn.Module, dataset: Dataset, doLog: bool = True, learning_rate: float = 0.003, epochs: int = 100, doSave: bool = False, savepath: str = "unknown", saveEachEpoch: bool = False):
     dataloader = DataLoader(dataset, batch_size=1024, shuffle=True)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     model.train()
     loss = None
+    interrupted = False
     try:
         saved = False
         for epoch in range(epochs):
@@ -63,9 +68,13 @@ def train(model: nn.Module, dataset: Dataset, doLog: bool = True, learning_rate:
                 saved = True
     except KeyboardInterrupt:
         print("KeyboardInterrupted")
+        interrupted = True
     finally:
         if doSave and not saved:
             save_model(model, path=savepath, loss=loss)
+    if interrupted:
+        exit(0)
+
 
 def predict(model: nn.Module, dataset: Dataset, device: torch.device = torch.device('cpu'), batch_size=32, doLog: bool = False):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
@@ -77,6 +86,7 @@ def predict(model: nn.Module, dataset: Dataset, device: torch.device = torch.dev
             predictions = torch.cat((predictions, output), dim=0)
     predictions = predictions.flatten()
     return predictions
+
 
 def save_prediction(predictions: torch.Tensor, filename_noext: str):
     k = 1
@@ -92,45 +102,61 @@ def save_prediction(predictions: torch.Tensor, filename_noext: str):
         for i, pred in enumerate(predictions):
             f.write(f"{i+1},{pred:.2f}\n")
 
-def load_train_dataset(device: torch.device = torch.device('cpu'), seq_len=24, pred_len=1):
-    print("start loading data")
-    train_data = pd.read_csv('data/train_data_flat_data.csv')
-    usefull_idx = pd.read_csv('data/train_data_flat_idx.csv')
-    idx = usefull_idx['idx'].to_list()
-    value = train_data['q'].to_list()
-    dataset = TrafficDatasetTrain(idx, value, seq_len, pred_len, device=device)
-    print("done preparing dataset")
+
+def load_train_dataset(**kwargs):
+    with open(FlatDataFile, "r") as f:
+        lines = f.readlines()
+    train_data = [float(line) for line in lines if line.strip() != ""]
+    with open(FlatIdxFile, "r") as f:
+        lines = f.readlines()
+    idx = [int(line) for line in lines if line.strip() != ""]
+    dataset = TrafficDatasetTrain(
+        idx, train_data, seq_len=kwargs['seq_len'], pred_len=kwargs['pred_len'], device=kwargs['device'])
     return dataset
+
 
 def load_finetune_datasets(**kwargs):
     with open(FlatDataFile, "r") as f:
         lines = f.readlines()
     train_data = [float(line) for line in lines if line.strip() != ""]
     datasets: list[Dataset] = []
-    with open(PredictDataIdxFile, "r") as f:
+    with open(FinetuneIdxFile, "r") as f:
         lines = f.readlines()
     for line in lines:
-        id, idx_str = line.split(':')
-        idx = [int(i) for i in idx_str.split(',')]
-        dataset = TrafficDatasetTrain(idx, train_data, **kwargs)
-        datasets.append(dataset)
+        if line.strip() == "":
+            continue
+        try:
+            id, idx_str = line.split(':')
+            idx = [int(i) for i in idx_str.split(',') if i.strip() != ""]
+            dataset = TrafficDatasetTrain(
+                idx, train_data, seq_len=kwargs['seq_len'], pred_len=kwargs['pred_len'], device=kwargs['device'])
+            datasets.append(dataset)
+        except Exception as e:
+            print(f"error line:[{line}]")
+            raise e
     return datasets
 
+
 def load_predict_spec_datasets(**kwargs):
-    total_dataset = TrafficDatasetPredict(PredictDataFile, **kwargs)
+    total_dataset = TrafficDatasetPredict(
+        PredictDataFile, seq_len=kwargs['seq_len'], device=kwargs['device'])
     with open(PredictDataIdxFile, "r") as f:
         lines = f.readlines()
     datasets: list[Dataset] = []
     for line in lines:
+        if line.strip() == "":
+            continue
         id, L, R = line.split(',')
         dataset = TrafficDatasetPredictSpec(int(L), int(R), total_dataset)
         datasets.append(dataset)
     return datasets
 
-def do_predict_xzydata(model: nn.Module, datafile: str, device: torch.device, savepath: str, seq_len: int = 24):
+
+def do_predict(model: nn.Module, datafile: str, device: torch.device, savepath: str, seq_len: int = 24):
     dataset = TrafficDatasetPredict(datafile, seq_len, device)
     predictions = predict(model, dataset, device, doLog=True)
     save_prediction(predictions, savepath)
+
 
 def do_predict_with_finetune(model: nn.Module, device: torch.device, savepath: str, **kwargs):
     print("loading train data")
@@ -140,9 +166,16 @@ def do_predict_with_finetune(model: nn.Module, device: torch.device, savepath: s
         raise ValueError("train set and predict set must have the same length")
     init_state = model.state_dict()
     predictions = torch.tensor([], device=device)
-    for train_set, predict_set in zip(train_sets, predict_sets):
-        model.load_state_dict(init_state)
-        train(model, train_set, doLog=False, epochs=10, doSave=False)
-        prediction = predict(model, predict_set, device=device)
-        predictions = torch.cat((predictions, prediction), dim=0)
+    print("start predicting")
+    with tqdm(total=439298) as pbar:
+        for train_set, predict_set in zip(train_sets, predict_sets):
+            if len(predict_set) == 0:
+                continue
+            model.load_state_dict(init_state)
+            if len(train_set) > 0:
+                print(f"finetuning with {len(train_set)} data")
+                train(model, train_set, doLog=False, epochs=1, doSave=False)
+            prediction = predict(model, predict_set, device=device)
+            predictions = torch.cat((predictions, prediction), dim=0)
+            pbar.update(len(predict_set))
     save_prediction(predictions, savepath)
