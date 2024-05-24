@@ -124,6 +124,7 @@ inline const _Path_t
     all0_csv        = "__exe__/all0.csv",       // Prefix 0
     mid0_csv        = "__exe__/mid0.csv",       // Consecutive 0
     list_csv        = "__exe__/list.csv",       // List of all the index used.
+    predict_idx_csv = "__exe__/predict.idx.csv",// Index of the prediction
     raw_train_csv   = "data/loop_sensor_train.csv",
     raw_pred_csv    = "data/loop_sensor_test_x.csv",
     baseline_csv    = "data/loop_sensor_test_baseline.csv",

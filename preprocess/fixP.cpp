@@ -76,6 +76,31 @@ void fill_pred(_Format_Pred_t &arr, size_t index, size_t times) {
     ++count_of_missing[missing];
 }
 
+void process_train() {
+    Function::read_train();
+    for (size_t i = 0 ; i < kCount ; ++i)
+        if (!train[i].empty())
+            table[i].try_init(train[i]);
+}
+
+void make_pred_idx() {
+    std::ofstream idx(Path::predict_idx_csv);
+
+    size_t last     = prediction[0].index;
+    size_t front    = 0;
+    for (size_t i = 0 ; i < prediction.size() ; ++i) {
+        auto [index, times] = prediction[i];
+        if (index != last) {
+            // last : [front, i - 1]
+            idx << std::format("{},{},{}\n", last, front + 1, i - 1 + 1);
+            front = i;
+            last = index;
+        }
+    }
+
+    idx << std::format("{},{},{}\n", last, front + 1, prediction.size());
+}
+
 void process_pred() {
     Function::read_pred();
 
@@ -95,13 +120,8 @@ void process_pred() {
 
         out << buf;
     }
-}
 
-void process_train() {
-    Function::read_train();
-    for (size_t i = 0 ; i < kCount ; ++i)
-        if (!train[i].empty())
-            table[i].try_init(train[i]);
+    make_pred_idx();
 }
 
 void debug_print() {
@@ -114,6 +134,7 @@ void debug_print() {
         std::cerr << std::format("Missing {} times: {}\n",
             i, (prev = count_of_missing[i]) / count_of_prediction * 100.0);
 }
+
 
 signed main() {
     process_train();
