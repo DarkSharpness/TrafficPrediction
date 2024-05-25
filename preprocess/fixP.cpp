@@ -123,7 +123,7 @@ void process_pred() {
 
         buf.clear();
         for (size_t i = 0 ; i < kWindow ; ++i)
-            buf += std::format("{:.1f},", pred[i]);
+            buf += std::format("{:.2f},", pred[i]);
         buf.back() = '\n';
 
         out << buf;

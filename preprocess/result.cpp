@@ -65,7 +65,7 @@ void rewrite_result(const char *out_path) {
     for (size_t i = 0; i < prediction.size(); i++) {
         auto [index, times] = prediction[i];
         auto value = try_update(index, times).value_or(result[i]);
-        out << std::format("{},{:.1f}\n", i + 1, value);
+        out << std::format("{},{:.2f}\n", i + 1, value);
     }
 }
 

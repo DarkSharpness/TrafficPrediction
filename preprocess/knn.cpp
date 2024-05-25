@@ -169,7 +169,7 @@ void read_pred() {
     while (std::getline(in, str)) {
         result[++cnt] = make_pred(str);
         if (!(result[cnt] > 0)) result[cnt] = base[cnt];
-        out << std::format("{},{:.1f}\n", cnt, result[cnt]);
+        out << std::format("{},{:.2f}\n", cnt, result[cnt]);
     }
 }
 
