@@ -99,7 +99,7 @@ signed main() {
         add_edge(x, y);
     }
 
-    print_graph();
+    // print_graph();
     write_graph();
 
     return 0;
