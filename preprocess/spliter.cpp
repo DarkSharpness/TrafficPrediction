@@ -12,12 +12,12 @@ struct IndexPack {
 std::vector <size_t> visited;
 
 // Just add to visit
-void split_work(size_t index, std::span <IndexPack> data) {
-    // std::ofstream out(std::format("index/{}.csv", index));
-    // for (auto [times, value] : data)
-    //     out << std::format("{},{}\n", times, value);
-    // assert(out.is_open());
-    // out.close();
+void split_train(size_t index, std::span <IndexPack> data) {
+    std::ofstream out(std::format("train/{}.csv", index));
+    for (auto [times, value] : data)
+        out << std::format("{},{}\n", times, value);
+    assert(out.is_open());
+    out.close();
     visited.push_back(index);
 }
 
@@ -37,7 +37,7 @@ void read_train() {
         auto value = reader.read<double>();
 
         if (iu_ac != last) {
-            split_work(last, data);
+            split_train(last, data);
             last = iu_ac;
             data.clear();
         }
@@ -45,8 +45,7 @@ void read_train() {
         data.push_back({times, value});
     }
 
-    split_work(last, data);
-
+    split_train(last, data);
 }
 
 void write_list() {
@@ -56,10 +55,19 @@ void write_list() {
         out << std::format("{} ", index);
 }
 
+// void split_pred(size_t index) {
+// }
+
+void read_pred() {
+    // Function::read_pred();
+}
+
 signed main() {
     auto start = std::chrono::high_resolution_clock::now();
-    // std::filesystem::create_directory("index");
+    std::filesystem::create_directory("train");
+    // std::filesystem::create_directory("predict");
     read_train();
+    read_pred();
     write_list();
     auto finish = std::chrono::high_resolution_clock::now();
     std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";
