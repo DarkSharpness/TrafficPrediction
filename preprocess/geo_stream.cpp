@@ -5,8 +5,6 @@
 #include <fstream>
 #include <iostream>
 
-constexpr size_t kCount = 1e4;
-
 struct Node {
     std::unordered_set <size_t> in_;
     std::unordered_set <size_t> out;
@@ -18,7 +16,6 @@ void add_edge(size_t fr, size_t to) {
     nodes[fr].out.insert(to);
     nodes[to].in_.insert(fr);
 }
-
 
 void print_graph() {
     for (size_t i = 0 ; i < kCount ; ++i) {
