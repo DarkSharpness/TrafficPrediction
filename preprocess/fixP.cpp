@@ -19,6 +19,8 @@ struct Table {
         size_t global_count {};
 
         for (size_t i = 0 ; i < kTimes ; ++i) {
+            // Invalid.
+            if (arr[i] < 0) continue;
             week_data[i % kWeek] += arr[i];
             hour_data[i % kHour] += arr[i];
             week_count[i % kWeek] += 1;
