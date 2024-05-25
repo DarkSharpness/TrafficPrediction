@@ -128,8 +128,6 @@ inline const _Path_t
     raw_train_csv   = "data/loop_sensor_train.csv",
     raw_pred_csv    = "data/loop_sensor_test_x.csv",
     baseline_csv    = "data/loop_sensor_test_baseline.csv",
-    raw_result_csv  = "data/raw.csv",
-    final_result_csv= "__exe__/result.csv",
     flat_dat_csv    = "__exe__/flat.dat.csv",
     flat_idx_csv    = "__exe__/flat.idx.csv",
     pred_fmt_csv    = "__exe__/pred.fmt.csv",
@@ -137,7 +135,7 @@ inline const _Path_t
     graph_out       = "data/graph.out",         // Graph description
     geo_near_csv    = "__exe__/near.csv",       // k nearest
     geo_stream_csv  = "__exe__/stream.csv",     // up & down stream
-    geo_train_csv   = "__exe__/train.csv",      // training by geo
+    geo_train_path  = "__exe__/geo",            // training by geo
     finetune_csv    = "__exe__/finetune.idx.csv";   // finetune data index
 
 } // namespace Path

@@ -11,8 +11,8 @@ std::vector <double> result;
 // Fixed zero set
 std::unordered_set <size_t> zero_set;
 
-void read_raw_result() {
-    std::ifstream in(Path::raw_result_csv);
+void read_raw_result(const char *raw_path) {
+    std::ifstream in(raw_path);
     assert(in.is_open());
 
     std::string str;
@@ -58,8 +58,8 @@ void read_zero() {
     }
 }
 
-void rewrite_result() {
-    std::ofstream out(Path::final_result_csv);
+void rewrite_result(const char *out_path) {
+    std::ofstream out(out_path);
     assert(out.is_open());
     out << "id,estimate_q\n";
     for (size_t i = 0; i < prediction.size(); i++) {
@@ -69,12 +69,17 @@ void rewrite_result() {
     }
 }
 
-signed main() {
+signed main(const int argc, const char *argv[]) {
+    assert(argc == 3, argv[0]);
+
+    auto raw_path = argv[1];
+    auto out_path = argv[2];
+
     Function::read_train();
     Function::read_pred();
     read_zero();
-    read_raw_result();
+    read_raw_result(raw_path);
     assert(prediction.size() == result.size());
-    rewrite_result();
+    rewrite_result(out_path);
     return 0;
 }
