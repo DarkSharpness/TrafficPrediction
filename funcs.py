@@ -17,7 +17,7 @@ def load_model(path: str):
         return None
 
 
-def save_model(model: nn.Module, path: str, loss: float):
+def save_model(model: nn.Module, path: str, loss: float, doLog: bool = True):
     def gen_filename(k):
         return f"{path}_{k}_{int(loss)}.pth" if loss is not None else f"{path}_{k}.pth"
 
@@ -27,7 +27,7 @@ def save_model(model: nn.Module, path: str, loss: float):
     while len(glob(gen_filename_star(k))) > 0:
         k += 1
     filename = gen_filename(k)
-    print("saving model to", filename)
+    if doLog: print("saving model to", filename)
     prefix = '/'.join(filename.split('/')[:-1])
     if len(prefix) > 0:
         os.makedirs(prefix, exist_ok=True)
@@ -89,12 +89,12 @@ def predict(model: nn.Module, dataset: Dataset, device: torch.device = torch.dev
     return predictions
 
 
-def save_prediction(predictions: torch.Tensor, filename_noext: str):
+def save_prediction(predictions: torch.Tensor, filename_noext: str, doLog: bool = True):
     k = 1
     while os.path.exists(filename_noext + f"_{k}.csv"):
         k += 1
     filename = filename_noext + f"_{k}.csv"
-    print("saving to", filename)
+    if doLog: print("saving to", filename)
     prefix = '/'.join(filename.split('/')[:-1])
     if len(prefix) > 0:
         os.makedirs(prefix, exist_ok=True)
