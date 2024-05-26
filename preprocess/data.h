@@ -137,7 +137,8 @@ inline const _Path_t
     geo_stream_csv  = "__exe__/stream.csv",     // up & down stream
     geo_train_path  = "__exe__/geo_training",   // training by geo
     geo_pred_path   = "__exe__/geo_predict",    // prediction by geo
-    geo_which_csv   = "__exe__/geo_which.csv",      // which geo
+    geo_which_csv   = "__exe__/geo_which.csv",  // which geo
+    geo_merge_csv   = "__exe__/geo_merge.csv",  // merge geo
     finetune_csv    = "__exe__/finetune.idx.csv";   // finetune data index
 
 } // namespace Path

@@ -16,7 +16,7 @@ run: compile
 	./$(EXE_PATH)/geo_stream
 	./$(EXE_PATH)/geo_split
 
-targets = train fixT predict fixP flatten spliter geo_stream geo_split
+targets = train fixT predict fixP flatten spliter geo_stream geo_split result geo_merge
 
 compile: init $(foreach x,$(targets),$(EXE_PATH)/$(x))
 
