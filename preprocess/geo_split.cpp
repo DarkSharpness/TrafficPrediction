@@ -71,23 +71,40 @@ bool can_infer_safe(size_t index, size_t times) {
 }
 
 std::vector <size_t> inferable_predict_times[kCount];
+std::vector <size_t> inferable_train_times[kCount];
+std::vector <size_t> inferable_predict_which[kCount];
 
 void count_infer() {
     size_t can_infer = 0;
     size_t which = 0;
-    std::vector <size_t> which_inferable;
 
     for (auto [index, times] : prediction) {
         ++which;
         if (can_infer_safe(index, times)) {
             can_infer++;
             inferable_predict_times[index].push_back(times);
-            which_inferable.push_back(which);
+            inferable_predict_which[index].push_back(which);
         }
     }
 
+    for (size_t i = 0; i < kCount; i++) {
+        if (inferable_predict_times[i].size() == 0) continue;
+        assert(can_infer_precondition(i));
+        auto &train = ::train[i];
+        assert(train.size() == kTimes);
+        for (size_t j = 0; j < kTimes; j++)
+            if (train[j] != -1 && can_infer_from_neighbor(i, j))
+                inferable_train_times[i].push_back(j);
+    }
+
     std::ofstream out(Path::geo_which_csv);
-    for (auto x : which_inferable) out << x << '\n';
+    for (size_t i = 0; i < kCount; i++) {
+        if (inferable_predict_times[i].size() == 0) continue;
+        out << i << ' ' << inferable_predict_times[i].size() << ' ';
+        for (auto which : inferable_predict_which[i])
+            out << which << ' ';
+        out << '\n';
+    }
 }
 
 void append_infer(std::string &line, size_t index, size_t times) {
@@ -124,15 +141,9 @@ void pack_infer(std::span <const size_t> infer, size_t index) {
 }
 
 // If there's too few data, return false.
+// We only train when there's enough data.
 bool make_infer_train(size_t index) {
-    auto &train = ::train[index];
-    assert(can_infer_precondition(index));
-    std::vector <size_t> infer;
-    infer.reserve(kTimes);
-
-    for (size_t i = 0; i < train.size(); i++)
-        if (train[i] != -1 && can_infer_from_neighbor(index, i))
-            infer.push_back(i);
+    auto &infer = ::inferable_train_times[index];
 
     constexpr size_t kThreshold = 500;
     if (infer.size() < kThreshold) return false;
