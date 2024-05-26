@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <filesystem>
+#include <algorithm>
+#include <ranges>
 
 struct Neighbor_Set {
     size_t neighbor[7]; // At most 7 neighbors
@@ -17,7 +19,7 @@ struct Neighbor_Set {
     size_t size() const { return count; }
 
     const size_t *begin() const { return neighbor; }
-    const size_t *end() const { return neighbor + count; }
+    const size_t *end()   const { return neighbor + count; }
 };
 
 Neighbor_Set neighbor[kCount];
@@ -34,12 +36,24 @@ void read_stream() {
         while (count--)
             neighbor[index].push_back(reader.read<size_t>());
     }
+
+    std::vector <size_t> arr;
+    arr.reserve(8);
+    for (size_t i = 0 ; i < kCount; i++) {
+        if (neighbor[i].size() == 0) continue;
+        arr.resize(neighbor[i].size());
+        std::ranges::copy(neighbor[i], arr.begin());
+        std::ranges::sort(arr);
+        assert(std::ranges::unique(arr).size() == 0, "Duplicate neighbor");
+    }
 }
 
 constexpr size_t kRange = 24;
+constexpr size_t kNears = 1;
 
+template <size_t _Size = kRange>
 bool train_available(size_t index, size_t times) {
-    for (size_t i = 1 ; i <= kRange; i++)
+    for (size_t i = 1 ; i <= _Size; i++)
         if (train[index][times - i] == -1)
             return false;
     return true;
@@ -61,7 +75,7 @@ bool can_infer_from_neighbor(size_t index, size_t times) {
     if (times < kRange) return false;
     if (!train_available(index, times)) return false;
     for (size_t neigh : neighbor[index])
-        if (!train_available(neigh, times)) return false;
+        if (!train_available <kNears> (neigh, times)) return false;
     return true;
 }
 
@@ -98,9 +112,15 @@ void count_infer() {
     }
 }
 
-void append_infer(std::string &line, size_t index, size_t times) {
-    for (size_t i = 24 ; i > 0; i--)
+template <size_t _Size = kRange>
+void append_infer_index(std::string &line, size_t index, size_t times) {
+    for (size_t i = _Size ; i > 0; i--)
         line += std::format("{},", train[index][times - i]);
+}
+
+void append_infer_neigh(std::string &line, size_t index, size_t times) {
+    for (size_t neigh : neighbor[index])
+        append_infer_index <kNears> (line, neigh, times);
 }
 
 enum class Pack_Type {
@@ -117,9 +137,9 @@ void pack_infer(std::span <const size_t> infer, size_t index) {
     std::string line;
     for (auto times : infer) {
         line.clear();
-        append_infer(line, index, times);
-        for (auto neigh : neighbor[index])
-            append_infer(line, neigh, times);
+
+        append_infer_index(line, index, times);
+        append_infer_neigh(line, index, times);
 
         if constexpr (_Type == Pack_Type::Training) {
             line += std::format("{}\n",train[index][times]);
@@ -136,7 +156,7 @@ void pack_infer(std::span <const size_t> infer, size_t index) {
 bool make_infer_train(size_t index) {
     auto &infer = ::inferable_train_times[index];
 
-    constexpr size_t kThreshold = 500;
+    constexpr size_t kThreshold = 1000;
     if (infer.size() < kThreshold) return false;
 
     pack_infer <Pack_Type::Training> (infer, index);
