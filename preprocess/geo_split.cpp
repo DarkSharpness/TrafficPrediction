@@ -74,12 +74,20 @@ std::vector <size_t> inferable_predict_times[kCount];
 
 void count_infer() {
     size_t can_infer = 0;
+    size_t which = 0;
+    std::vector <size_t> which_inferable;
+
     for (auto [index, times] : prediction) {
+        ++which;
         if (can_infer_safe(index, times)) {
             can_infer++;
             inferable_predict_times[index].push_back(times);
+            which_inferable.push_back(which);
         }
     }
+
+    std::ofstream out(Path::geo_which_csv);
+    for (auto x : which_inferable) out << x << '\n';
 }
 
 void append_infer(std::string &line, size_t index, size_t times) {
@@ -92,7 +100,6 @@ enum class Pack_Type {
     Prediction
 };
 
-
 template <Pack_Type _Type>
 void pack_infer(std::span <const size_t> infer, size_t index) {
     assert(infer.size() > 0);
@@ -102,9 +109,9 @@ void pack_infer(std::span <const size_t> infer, size_t index) {
     std::string line;
     for (auto times : infer) {
         line.clear();
+        append_infer(line, index, times);
         for (auto neigh : neighbor[index])
             append_infer(line, neigh, times);
-        append_infer(line, index, times);
 
         if constexpr (_Type == Pack_Type::Training) {
             line += std::format("{}\n",train[index][times]);
@@ -124,9 +131,10 @@ bool make_infer_train(size_t index) {
     infer.reserve(kTimes);
 
     for (size_t i = 0; i < train.size(); i++)
-        if (can_infer_from_neighbor(index, i)) infer.push_back(i);
+        if (train[i] != -1 && can_infer_from_neighbor(index, i))
+            infer.push_back(i);
 
-    constexpr size_t kThreshold = 20;
+    constexpr size_t kThreshold = 500;
     if (infer.size() < kThreshold) return false;
 
     pack_infer <Pack_Type::Training> (infer, index);
