@@ -11,3 +11,10 @@ PredictDataFile = '__exe__/pred.fmt.csv'
 PredictDataIdxFile = '__exe__/predict.idx.csv'
 # 需要预测的摄像头的编号,csv,一列数字
 # PredictIdFile = '__exe__/id_for_predict.csv'
+
+# 可以用地理位置来预测学习的摄像头编号
+GeoIndexList = '__exe__/geo_list.csv'
+# 地理位置相关的训练数据路径
+GeoTrainFilePath = '__exe__/geo_training'
+# 地理位置相关的预测数据路径
+GeoPredictFilePath = '__exe__/geo_predict'
