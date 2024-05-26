@@ -70,6 +70,7 @@ void write_graph() {
         for (size_t j : nodes[i].out) 
             if (in_list.count(j)) visited.insert(j);
         if (visited.empty()) continue;
+        visited.erase(i); // Remove self edge
 
         ++count[visited.size()];
 
