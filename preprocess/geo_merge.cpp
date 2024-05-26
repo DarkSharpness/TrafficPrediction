@@ -28,6 +28,7 @@ void read_best(const char *path) {
     best_output.reserve(439300);    // Hack
     while (std::getline(input, line)) {
         auto reader = Reader { line };
+        reader.read<size_t>();  // Useless
         best_output.push_back(reader.read<double>());
     }
 }
@@ -37,7 +38,7 @@ void read_geo_and_merge(const char *path) {
         auto &whichs = predict_which[i];
         if (whichs.empty()) continue;
         std::ifstream input(std::format("{}/{}.csv", path, i));
-        assert(input.is_open());
+        assert(input.is_open(), i);
         std::string line;
         std::getline(input, line);
         assert(line == "id,estimate_q");
@@ -66,4 +67,5 @@ signed main(int argc, const char *argv[]) {
     read_which();
     read_best(best_output_csv);
     read_geo_and_merge(geo_predict_path);
+    write_merged();
 }

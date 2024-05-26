@@ -96,15 +96,6 @@ void count_infer() {
             if (train[j] != -1 && can_infer_from_neighbor(i, j))
                 inferable_train_times[i].push_back(j);
     }
-
-    std::ofstream out(Path::geo_which_csv);
-    for (size_t i = 0; i < kCount; i++) {
-        if (inferable_predict_times[i].size() == 0) continue;
-        out << i << ' ' << inferable_predict_times[i].size() << ' ';
-        for (auto which : inferable_predict_which[i])
-            out << which << ' ';
-        out << '\n';
-    }
 }
 
 void append_infer(std::string &line, size_t index, size_t times) {
@@ -158,6 +149,17 @@ void make_infer_pred(size_t index) {
     pack_infer <Pack_Type::Prediction> (infer, index);
 }
 
+void write_which() {
+    std::ofstream out(Path::geo_which_csv);
+    for (size_t i = 0; i < kCount; i++) {
+        if (inferable_predict_times[i].size() == 0) continue;
+        out << i << ' ' << inferable_predict_times[i].size() << ' ';
+        for (auto which : inferable_predict_which[i])
+            out << which << ' ';
+        out << '\n';
+    }
+}
+
 void write_infer() {
     std::filesystem::create_directories(Path::geo_train_path);
     std::filesystem::create_directories(Path::geo_pred_path);
@@ -173,8 +175,12 @@ void write_infer() {
             can_infer += count;
             make_infer_pred(i);
             list << i << '\n'; // Add to can infer list.
+        } else {
+            inferable_predict_times[i].clear();
         }
     }
+
+    write_which();
 
     std::cerr << "Inferable in prediction: " <<
         std::format("{:.4f}%", 100.0 * can_infer / prediction.size()) << std::endl;
