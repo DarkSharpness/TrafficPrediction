@@ -74,6 +74,7 @@ def train(model: nn.Module, dataset: Dataset, doLog: bool = True, learning_rate:
             save_model(model, path=savepath, loss=loss)
     if interrupted:
         exit(0)
+    return loss
 
 
 def predict(model: nn.Module, dataset: Dataset, device: torch.device = torch.device('cpu'), batch_size=32, doLog: bool = False):
@@ -137,9 +138,9 @@ def load_finetune_datasets(**kwargs):
     return datasets
 
 
-def load_predict_spec_datasets(**kwargs):
+def load_predict_spec_datasets(datafile: str, **kwargs):
     total_dataset = TrafficDatasetPredict(
-        PredictDataFile, seq_len=kwargs['seq_len'], device=kwargs['device'])
+        datafile, seq_len=kwargs['seq_len'], device=kwargs['device'])
     with open(PredictDataIdxFile, "r") as f:
         lines = f.readlines()
     datasets: list[Dataset] = []
@@ -147,7 +148,11 @@ def load_predict_spec_datasets(**kwargs):
         if line.strip() == "":
             continue
         id, L, R = line.split(',')
-        dataset = TrafficDatasetPredictSpec(int(L), int(R), total_dataset)
+        L = int(L)
+        R = int(R)
+        if R == 0: R = -1
+        else: L, R = L - 1, R - 1
+        dataset = TrafficDatasetPredictSpec(L, R, total_dataset)
         datasets.append(dataset)
     return datasets
 
@@ -158,24 +163,50 @@ def do_predict(model: nn.Module, datafile: str, device: torch.device, savepath: 
     save_prediction(predictions, savepath)
 
 
-def do_predict_with_finetune(model: nn.Module, device: torch.device, savepath: str, **kwargs):
+def do_predict_with_finetune(model: nn.Module, datafile: str, device: torch.device,
+                             savepath: str, finetune_epochs: int, finetune_savepath: str,
+                             use_saved: bool,
+                             **kwargs):
+    if finetune_epochs <= 0:
+        print("fallback to normal predict")
+        return do_predict(model, PredictDataFile, device, savepath, seq_len=kwargs['seq_len'])
+
     print("loading train data")
     train_sets = load_finetune_datasets(device=device, **kwargs)
-    predict_sets = load_predict_spec_datasets(device=device, **kwargs)
+    predict_sets = load_predict_spec_datasets(datafile, device=device, **kwargs)
     if len(train_sets) != len(predict_sets):
         raise ValueError("train set and predict set must have the same length")
+    
+    total_train_size = 0
+    for train_set in train_sets:
+        total_train_size += len(train_set)
+    total_predict_size = 439298
+
     init_state = model.state_dict()
     predictions = torch.tensor([], device=device)
     print("start predicting")
-    with tqdm(total=439298) as pbar:
+    cur_id = 0
+    losses = []
+    with tqdm(total=total_predict_size + total_train_size * finetune_epochs) as pbar:
         for train_set, predict_set in zip(train_sets, predict_sets):
+            cur_id += 1
             if len(predict_set) == 0:
+                pbar.update(len(train_set) * finetune_epochs)
                 continue
             model.load_state_dict(init_state)
+            if len(train_set) > 0 and use_saved:
+                model = torch.load(f"{finetune_savepath}/{cur_id}.pth")
             if len(train_set) > 0:
-                print(f"finetuning with {len(train_set)} data")
-                train(model, train_set, doLog=False, epochs=1, doSave=False)
+                loss = train(model, train_set, doLog=False, epochs=finetune_epochs, doSave=False)
+                pbar.update(len(train_set) * finetune_epochs)
+                losses.append((cur_id, loss))
+                torch.save(model, f"{finetune_savepath}/{cur_id}.pth")
             prediction = predict(model, predict_set, device=device)
             predictions = torch.cat((predictions, prediction), dim=0)
             pbar.update(len(predict_set))
     save_prediction(predictions, savepath)
+
+    with open("finetune_losses.csv", "w") as f:
+        f.write("id,loss\n")
+        for id, loss in losses:
+            f.write(f"{id},{loss}\n")
