@@ -21,6 +21,13 @@ struct TimeStamp {
     size_t inner;
     explicit TimeStamp(size_t inner) : inner(inner) {}
 
+    static size_t magic_trans(size_t times) {
+        if (times >= 15985) return times + 1;
+        if (times >= 10778) return times + 2;
+        if (times >= 8761)  return times + 1;
+        return times;
+    }
+
     // format as below:
     // 2022-01-12 00:00:00
     // Timestamp relative to 2022-01-01 00:00:00
@@ -40,25 +47,25 @@ struct TimeStamp {
 
         using _Self = TimeStamp;
 
-        assert(year >= 2022 && year <= 2025);
+        assert(year >= 2022 && year <= 2024);
         assert(month >= 1 && month <= 12);
         assert(day >= 1 && day <= 31);
         assert(hour >= 0 && hour <= 23);
-        return _Self { (kMONTH[month - 1] + day - 1 + (year - 2022) * 365) * 24 + hour };
+
+        size_t input_time = (kMONTH[month - 1] + day - 1 + (year - 2022) * 365) * 24 + hour;
+
+        return _Self { magic_trans(input_time) };
     }
 
-    size_t get_hour() const { return inner % 24; }
-
-    std::string to_string() const {
-        size_t hour = inner % 24;
-        size_t day = inner / 24;
-        size_t year = 2022 + day / 365;
-        day %= 365;
-        size_t month = 0;
-        while (day >= kMONTH[month + 1]) ++month;
-        return std::format("{}-{:02d}-{:02d} {:02d}:00:00", year, month + 1, day - kMONTH[month] + 1, hour);
-    }
-
+    // std::string to_string() const {
+    //     size_t hour = inner % 24;
+    //     size_t day = inner / 24;
+    //     size_t year = 2022 + day / 365;
+    //     day %= 365;
+    //     size_t month = 0;
+    //     while (day >= kMONTH[month + 1]) ++month;
+    //     return std::format("{}-{:02d}-{:02d} {:02d}:00:00", year, month + 1, day - kMONTH[month] + 1, hour);
+    // }
 };
 
 struct Reader {
