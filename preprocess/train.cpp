@@ -37,16 +37,6 @@ inline Packed process_raw(std::string_view line) {
 }
 
 constexpr size_t kCOUNT = 10000;
-size_t appearance[kCOUNT];
-
-void print_meta() {
-    std::ofstream meta(Path::meta_csv, std::ios::trunc);
-    for (size_t i = 0; i < kCOUNT; i++) {
-        auto cnt = appearance[i];
-        if (cnt == 0) continue;
-        meta << std::format("{}, {}\n", i, cnt);
-    }
-}
 
 signed main() {
     auto start = std::chrono::high_resolution_clock::now();
@@ -60,11 +50,8 @@ signed main() {
 
     while (std::getline(input, line)) {
         auto [timestamp, index, barre, value] = process_raw(line);
-        appearance[index]++;
         output << std::format("{}, {}, {}\n", index, timestamp.inner, value);
     }
-
-    print_meta();
 
     auto finish = std::chrono::high_resolution_clock::now();
     std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "ms\n";

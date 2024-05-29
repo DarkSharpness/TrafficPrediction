@@ -89,7 +89,7 @@ void process_train() {
 void make_pred_idx() {
     static std::pair <size_t, size_t> temp[kCount];
 
-    std::ofstream idx(Path::predict_idx_csv);
+    std::ofstream idx(Path::pred_map_csv);
 
     size_t last     = prediction[0].index;
     size_t front    = 0;

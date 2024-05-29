@@ -17,7 +17,7 @@ bool is_available(size_t i, size_t j) {
 }
 
 void flatten_data() {
-    std::ofstream out(Path::flat_dat_csv);
+    std::ofstream out(Path::flat_raw_csv);
     assert(out.is_open());
     for (size_t i = 0 ; i < kCount ; i++) {
         if (train[i].size() == 0) continue;
@@ -28,32 +28,29 @@ void flatten_data() {
 }
 
 void flatten_and_finetune_index() {
-    std::ofstream out(Path::flat_idx_csv);
-    std::ofstream tune(Path::finetune_csv);
-    assert(out.is_open());
+    std::ofstream flat(Path::flat_idx_csv);
+    std::ofstream tune(Path::tune_idx_csv);
+    assert(flat.is_open() && tune.is_open());
     size_t index = 0;
     size_t avail = 0;
     std::string line;
 
     struct Guard {
-        std::ofstream &out;
-        std::string &str;
-        ~Guard() { out << str << '\n'; }
+        std::ofstream   &out;
+        std::string     &str;
+        ~Guard() { out << (str += '\n'); str.clear(); }
     };
 
     for (size_t i = 0; i < kCount; i++) {
         Guard guard { tune, line };
-
-        line.clear();
         line += std::format("{}:", i);
-
         if (train[i].size() == 0) continue;
 
         for (size_t j = 0; j < kTimes - kAmount; j++) {
             if (train[i][j] == -1) continue;
             if (is_available(i, j)) {
                 avail++;
-                out << index << '\n';
+                flat << index << '\n';
                 line += std::format("{},", index);
             }
             index++;

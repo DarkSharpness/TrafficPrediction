@@ -3,37 +3,6 @@
 #include <fstream>
 #include <array>
 
-size_t appear[kCount];
-
-void read_meta() {
-    std::ifstream in(Path::meta_csv);
-    assert(in.is_open());
-    std::string str;
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto index = reader.read<size_t>();
-        auto count = reader.read<size_t>();
-        appear[index] = count;
-        train[index].resize(kTimes, -1);
-    }
-}
-
-void read_train() {
-    read_meta();
-
-    std::ifstream in(Path::train_csv);
-    assert(in.is_open());
-    std::string str;
-
-    while (std::getline(in, str)) {
-        auto reader = Reader {str};
-        auto iu_ac = reader.read<size_t>();
-        auto times = reader.read<size_t>();
-        auto value = reader.read<double>();
-        train[iu_ac][times] = value;
-    }
-}
-
 void clear_prefix_0();
 void clear_middle_0();
 void fix_prefix_0();
@@ -48,27 +17,20 @@ void clean_data() {
     fix_middle_0();
 }
 
-void rewrite_meta();
 void rewrite_train();
 
-void rewrite_data() {
-    rewrite_meta();
-    rewrite_train();
-}
-
 signed main() {
-    read_train();
+    Function::read_train();
     std::cerr << "Read data successfully.\n";
     clean_data();
     std::cerr << "Clean data successfully.\n";
-    rewrite_data();
+    rewrite_train();
     std::cerr << "Rewrite data successfully.\n";
     return 0;
 }
 
 void clear_prefix_0() {
     std::ofstream out(Path::all0_csv, std::ios::app);
-
     assert(out.is_open());
 
     // Prefix 0 is not allowed.
@@ -79,61 +41,60 @@ void clear_prefix_0() {
     // We record all these all-0 index, and then remove data.
 
     for (size_t i = 0; i < kCount; i++) {
-        if (appear[i] > 0) {
-            size_t cnt {};
-            size_t last_0 {};
-            for (size_t j = 0; j < kTimes; j++) {
-                if (train[i][j] == -1) continue;
-                if (train[i][j] != 0) {
-                    break;
-                } else { // Prefix 0
-                    last_0 = j;
-                    ++cnt;
-                }
+        if (train[i].empty()) continue;
+        size_t cnt {};
+        size_t last_0 {};
+        size_t appear {};
+        for (size_t j = 0; j < kTimes; j++) {
+            if (train[i][j] == -1) continue;
+            ++appear;
+            if (train[i][j] != 0) {
+                break;
+            } else { // Prefix 0
+                last_0 = j;
+                ++cnt;
             }
-
-            // Normal case.
-            if (cnt < 5) continue;
-
-            if (cnt == appear[i]) {
-                std::cerr << std::format("{}: All Zero.\n", i);
-                out << i << '\n';
-            } else if (cnt != 0) {
-                std::cerr <<
-                    std::format("{}: Zero until {}.  \n", i, last_0);
-            }
-
-            train[i].clear();
-            train[i].shrink_to_fit();
-            appear[i] = 0;
         }
+
+        // Normal case.
+        if (cnt < 5) continue;
+
+        if (cnt == appear) {
+            std::cerr << std::format("{}: All Zero.\n", i);
+            out << i << '\n';
+        } else if (cnt != 0) {
+            std::cerr <<
+                std::format("{}: Zero until {}.  \n", i, last_0);
+        }
+
+        train[i].clear();
+        train[i].shrink_to_fit();
     }
 }
 
 void clear_middle_0() {
     std::ofstream out(Path::mid0_csv, std::ios::app);
     for (size_t i = 0 ; i < kCount ; i++) {
-        if (appear[i] > 0) {
-            size_t cnt {}; // count of consecutive 0
-            size_t beg {}; // First 0 position
-            size_t pos {}; // Last position 
-            for (size_t j = 0; j < kTimes; j++) {
-                if (train[i][j] == -1) continue;
-                if (train[i][j] != 0) {
-                    // Consecutive 0 in [beg, pos]
-                    if (cnt >= 10) {
-                        out << std::format("{},{},{}\n", i, beg, pos);
-                        std::cerr <<
-                            std::format("Consecutive {} zero in [{},{}]\n", cnt, beg, pos);
-                        for (size_t k = beg; k <= pos; k++)
-                            train[i][k] = -1;
-                    }
-                    cnt = 0;
-                } else {
-                    // First 0 position
-                    if (cnt++ == 0) beg = j;
-                    pos = j;
+        if (train[i].empty()) continue;
+        size_t cnt {}; // count of consecutive 0
+        size_t beg {}; // First 0 position
+        size_t pos {}; // Last position 
+        for (size_t j = 0; j < kTimes; j++) {
+            if (train[i][j] == -1) continue;
+            if (train[i][j] != 0) {
+                // Consecutive 0 in [beg, pos]
+                if (cnt >= 10) {
+                    out << std::format("{},{},{}\n", i, beg, pos);
+                    std::cerr <<
+                        std::format("Consecutive {} zero in [{},{}]\n", cnt, beg, pos);
+                    for (size_t k = beg; k <= pos; k++)
+                        train[i][k] = -1;
                 }
+                cnt = 0;
+            } else {
+                // First 0 position
+                if (cnt++ == 0) beg = j;
+                pos = j;
             }
         }
     }
@@ -182,24 +143,10 @@ void fix_middle_0() {
         mid0 << std::format("{},{},{}\n", index, beg, end);
 }
 
-void rewrite_meta() {
-    std::ofstream out(Path::meta_csv);
-    for (size_t i = 0; i < kCount; i++) {
-        if (appear[i] == 0) continue;
-
-        size_t appear = 0;
-        for (size_t j = 0; j < kTimes; j++)
-            if (train[i][j] != -1) ++appear;
-
-        out << std::format("{},{}\n", i, appear);
-        ::appear[i] = appear;
-    }
-}
-
 void rewrite_train() {
     std::ofstream out(Path::train_csv);
     for (size_t i = 0; i < kCount; i++) {
-        if (appear[i] == 0) continue;
+        if (train[i].empty()) continue;
         for (size_t j = 0; j < kTimes; j++) {
             if (train[i][j] == -1) continue;
             out << std::format("{},{},{}\n", i, j, train[i][j]);

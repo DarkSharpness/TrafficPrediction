@@ -127,15 +127,14 @@ using _Path_t = const char *;
 inline const _Path_t
     train_csv       = "__exe__/train.csv",      // training data
     pred_csv        = "__exe__/pred.csv",       // prediction task
-    meta_csv        = "__exe__/meta.csv",       // meta data, occurance data
     all0_csv        = "__exe__/all0.csv",       // Prefix 0
     mid0_csv        = "__exe__/mid0.csv",       // Consecutive 0
     list_csv        = "__exe__/list.csv",       // List of all the index used.
-    predict_idx_csv = "__exe__/predict.idx.csv",// Index of the prediction
+    pred_map_csv    = "__exe__/pred.map.csv",   // Index of the prediction
     raw_train_csv   = "data/loop_sensor_train.csv",
     raw_pred_csv    = "data/loop_sensor_test_x.csv",
     baseline_csv    = "data/loop_sensor_test_baseline.csv",
-    flat_dat_csv    = "__exe__/flat.dat.csv",
+    flat_raw_csv    = "__exe__/flat.raw.csv",
     flat_idx_csv    = "__exe__/flat.idx.csv",
     pred_fmt_csv    = "__exe__/pred.fmt.csv",
     geo_raw_csv     = "data/geo_reference.csv", // Geo reference
@@ -146,7 +145,7 @@ inline const _Path_t
     geo_pred_path   = "__exe__/geo_predict",    // prediction by geo
     geo_which_csv   = "__exe__/geo_which.csv",  // which geo
     geo_merge_csv   = "__exe__/geo_merge.csv",  // merge geo
-    finetune_csv    = "__exe__/finetune.idx.csv";   // finetune data index
+    tune_idx_csv    = "__exe__/finetune.idx.csv";   // finetune data index
 
 } // namespace Path
 
