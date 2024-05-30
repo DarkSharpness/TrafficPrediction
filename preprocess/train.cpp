@@ -39,6 +39,11 @@ inline Packed process_raw(std::string_view line) {
 constexpr size_t kCOUNT = 10000;
 
 signed main() {
+    if (std::filesystem::exists(Path::train_csv)) {
+        std::cerr << "Train file already exists\n";
+        return 0;
+    }
+
     auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input(Path::raw_train_csv);
 
