@@ -7,8 +7,9 @@ All the shell codes used are place in the root directory of this repository.
 The fastest way to get all the data required without compiling any C++ code is to run the following script:
 
 ```shell
-chmod +x simple.sh
-./simple.sh
+mkdir -p data
+wget -P data/ https://github.com/DarkSharpness/TrafficPrediction/releases/download/Raw-Data/raw-data.tar.gz
+tar -xzvf data/raw-data.tar.gz -C data/
 ```
 
 To learn more about the installation details, you may read [this](install.md).
