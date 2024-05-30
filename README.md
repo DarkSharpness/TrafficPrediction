@@ -6,6 +6,3 @@ A simple traffic prediction model using a PatchTST model.
 
 Please refer to [docs](docs/README.md) for installation details.
 
-## Model Description
-
-<!-- TODO -->

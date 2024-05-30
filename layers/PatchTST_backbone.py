@@ -1,7 +1,7 @@
 __all__ = ['PatchTST_backbone']
 
 # Cell
-from typing import Callable, Optional
+from typing import Optional
 import torch
 from torch import nn
 from torch import Tensor

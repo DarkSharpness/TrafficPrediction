@@ -5,7 +5,6 @@ from tqdm import tqdm
 from glob import glob
 import os
 from TrafficDataset import *
-import pandas as pd
 from datapath import *
 
 
@@ -106,6 +105,7 @@ def save_prediction(predictions: torch.Tensor, filename_noext: str, doLog: bool 
 
 def load_train_dataset(**kwargs):
     with open(FlatDataFile, "r") as f:
+        lines = f.readlines()
     train_data = [float(line) for line in lines if line.strip() != ""]
     with open(FlatIdxFile, "r") as f:
         lines = f.readlines()
@@ -134,27 +134,6 @@ def load_finetune_datasets(**kwargs):
             print(f"error line:[{line}]")
             raise e
     return datasets
-
-
-def load_geo_train_dataset(**kwargs):
-    with open(GeoIndexList, "r") as f:
-        lines = f.readlines()
-    data_index = [int(line) for line in lines]
-    datasets: list[Dataset] = []
-    for index in data_index:
-        filename = f"{GeoTrainFilePath}/{index}.csv"
-        with open(filename, "r") as f:
-            lines = f.readlines()
-        assert(len(lines) > 0)
-        length = len(lines[0].split(',')) - 1
-        Length as input, 1 as output label
-        # train_data = 
-
-        for line in lines:
-            values = line.split(',')
-            assert(len(values) == length + 1)
-
-            
 
 
 def load_predict_spec_datasets(datafile: str, **kwargs):
@@ -205,7 +184,6 @@ def do_predict_with_finetune(model: nn.Module, datafile: str, device: torch.devi
     predictions = torch.tensor([], device=device)
     print("start predicting")
     cur_id = 0
-    losses = []
     with tqdm(total=total_predict_size + total_train_size * finetune_epochs) as pbar:
         for train_set, predict_set in zip(train_sets, predict_sets):
             cur_id += 1
@@ -216,23 +194,9 @@ def do_predict_with_finetune(model: nn.Module, datafile: str, device: torch.devi
             if len(train_set) > 0 and use_saved:
                 model = torch.load(f"{finetune_savepath}/{cur_id}.pth")
             if len(train_set) > 0:
-                loss = train(model, train_set, doLog=False, epochs=finetune_epochs, doSave=False)
                 pbar.update(len(train_set) * finetune_epochs)
-                losses.append((cur_id, loss))
                 torch.save(model, f"{finetune_savepath}/{cur_id}.pth")
             prediction = predict(model, predict_set, device=device)
             predictions = torch.cat((predictions, prediction), dim=0)
             pbar.update(len(predict_set))
     save_prediction(predictions, savepath)
-
-    with open("finetune_losses.csv", "w") as f:
-        f.write("id,loss\n")
-        for id, loss in losses:
-            f.write(f"{id},{loss}\n")
-
-def do_predict_with_geometry(model: nn.Module, datafile: str, device: torch.device,
-                             savepath: str, finetune_epochs: int, finetune_savepath: str,
-                             use_saved: bool,
-                             **kwargs):
-    assert finetune_epochs > 0
-    print("loading train data")

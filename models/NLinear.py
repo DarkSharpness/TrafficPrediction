@@ -1,10 +1,4 @@
-import torch
-import pandas as pd
 import torch.nn as nn
-import numpy as np
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-
 
 class Model(nn.Module):
     """
