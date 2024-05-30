@@ -7,9 +7,10 @@ All the shell codes used are place in the root directory of this repository.
 The fastest way to get all the data required without compiling any C++ code is to run the following script:
 
 ```shell
-mkdir -p data
-wget -P data/ https://github.com/DarkSharpness/TrafficPrediction/releases/download/Raw-Data/raw-data.tar.gz
-tar -xzvf data/raw-data.tar.gz -C data/
+mkdir -p __exe__
+wget -P __exe__/ https://github.com/DarkSharpness/TrafficPrediction/releases/download/Generated-Data/generated.tar.gz
+tar -xzvf __exe__/generated.tar.gz -C __exe__/
+pip install -r requirements.txt
 ```
 
 To learn more about the installation details, you may read [this](install.md).
@@ -24,8 +25,7 @@ Then you can run the `Run.py` to train the model:
 python Run.py
 ```
 
-If it's too time consuming to train the model, you can download the pre-trained model in the release of this repository,
-and put it in the `save` directory.
+If it's too time consuming to train the model, you can download the pre-trained model in the release of this repository, and put it in the `save` directory.
 
 Then you should modify the path in the `Run.py` to load the pre-trained model:
 
