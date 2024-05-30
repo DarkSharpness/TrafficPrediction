@@ -16,9 +16,11 @@ isTrain = False
 isPredict = True
 ModelName = "PST2"
 
+
 def main():
-    model = load_model("save/PST2_train_100_13965.pth")
+    model = load_model("save/PST2_best/PST2_train_79_13295.pth")
     if model is None:
+        print("warn")
         model = Model(config)
     model = model.to(device)
 
@@ -31,7 +33,9 @@ def main():
 
     if isPredict:
         # do_predict_xzydata(model, datafile="data/pred.fmt.csv", device=device, savepath="result/" + ModelName)
-        do_predict_with_finetune(model, device, savepath="result/PST2/PST2_finetune", seq_len=24, pred_len=1)
+        do_predict_with_finetune(model, "__exe__/pred.fmt.csv", device, savepath="result/LastTry",
+                                 seq_len=24, pred_len=1, finetune_epochs=0, finetune_savepath="save/PST2_best/finetune", use_saved=True)
+
 
 if __name__ == '__main__':
     main()

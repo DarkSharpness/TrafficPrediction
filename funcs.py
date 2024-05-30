@@ -106,6 +106,7 @@ def save_prediction(predictions: torch.Tensor, filename_noext: str, doLog: bool 
 
 def load_train_dataset(**kwargs):
     with open(FlatDataFile, "r") as f:
+        lines = f.readlines()
     train_data = [float(line) for line in lines if line.strip() != ""]
     with open(FlatIdxFile, "r") as f:
         lines = f.readlines()
@@ -136,23 +137,23 @@ def load_finetune_datasets(**kwargs):
     return datasets
 
 
-def load_geo_train_dataset(**kwargs):
-    with open(GeoIndexList, "r") as f:
-        lines = f.readlines()
-    data_index = [int(line) for line in lines]
-    datasets: list[Dataset] = []
-    for index in data_index:
-        filename = f"{GeoTrainFilePath}/{index}.csv"
-        with open(filename, "r") as f:
-            lines = f.readlines()
-        assert(len(lines) > 0)
-        length = len(lines[0].split(',')) - 1
-        Length as input, 1 as output label
-        # train_data = 
+# def load_geo_train_dataset(**kwargs):
+#     with open(GeoIndexList, "r") as f:
+#         lines = f.readlines()
+#     data_index = [int(line) for line in lines]
+#     datasets: list[Dataset] = []
+#     for index in data_index:
+#         filename = f"{GeoTrainFilePath}/{index}.csv"
+#         with open(filename, "r") as f:
+#             lines = f.readlines()
+#         assert(len(lines) > 0)
+#         length = len(lines[0].split(',')) - 1
+#         Length as input, 1 as output label
+#         # train_data = 
 
-        for line in lines:
-            values = line.split(',')
-            assert(len(values) == length + 1)
+#         for line in lines:
+#             values = line.split(',')
+#             assert(len(values) == length + 1)
 
             
 
@@ -186,9 +187,9 @@ def do_predict_with_finetune(model: nn.Module, datafile: str, device: torch.devi
                              savepath: str, finetune_epochs: int, finetune_savepath: str,
                              use_saved: bool,
                              **kwargs):
-    if finetune_epochs <= 0:
-        print("fallback to normal predict")
-        return do_predict(model, PredictDataFile, device, savepath, seq_len=kwargs['seq_len'])
+    # if finetune_epochs <= 0:
+    #     print("fallback to normal predict")
+    #     return do_predict(model, PredictDataFile, device, savepath, seq_len=kwargs['seq_len'])
 
     print("loading train data")
     train_sets = load_finetune_datasets(device=device, **kwargs)
@@ -214,13 +215,13 @@ def do_predict_with_finetune(model: nn.Module, datafile: str, device: torch.devi
                 continue
             model.load_state_dict(init_state)
             if len(train_set) > 0 and use_saved:
-                model = torch.load(f"{finetune_savepath}/{cur_id}.pth")
+                model = torch.load(f"{finetune_savepath}/{cur_id}.pth", map_location=device)
             if len(train_set) > 0:
                 loss = train(model, train_set, doLog=False, epochs=finetune_epochs, doSave=False)
                 pbar.update(len(train_set) * finetune_epochs)
                 losses.append((cur_id, loss))
                 torch.save(model, f"{finetune_savepath}/{cur_id}.pth")
-            prediction = predict(model, predict_set, device=device)
+            prediction = predict(model, predilct_set, device=device)
             predictions = torch.cat((predictions, prediction), dim=0)
             pbar.update(len(predict_set))
     save_prediction(predictions, savepath)
