@@ -1,6 +1,6 @@
 # How to compile the project to install
 
-First of all, you must have a basic environment with Python 3.6 or higher. Also, since our program depends on some data processing front-end written in C++, you must have a C++ compiler installed on your machine. We recommend using the GNU Compiler Collection (GCC) with version no less than 13.1.0.
+First of all, you'd better have a basic environment with Python 3.12 or higher. Also, since our program depends on some data processing front-end written in C++, you must have a C++ compiler installed on your machine. We recommend using the GNU Compiler Collection (GCC) with version no less than 13.1.0.
 
 You may check your environment by running the following commands:
 
